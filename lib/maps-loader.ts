@@ -21,7 +21,7 @@ export const loadGoogleMaps = (): Promise<typeof google> => {
   loaderInstance = new Loader({
     apiKey,
     version: 'weekly',
-    libraries: ['places'],
+    libraries: ['places', 'marker', 'geocoding'],
   });
 
   mapsPromise = loaderInstance.load().catch((error) => {

@@ -115,7 +115,7 @@ export const analytics = {
     source_city: string;
     dest_city: string;
     toggles: any;
-    multi_cafe?: boolean;
+    multi_place?: boolean; // Whether multiple source places were used (legacy: was multi_cafe)
     has_free_text?: boolean;
   }) => track({ name: 'search_submit', params }),
 
@@ -152,8 +152,8 @@ export const analytics = {
     free_text_added: boolean;
   }) => track({ name: 'refine_search_apply', params }),
 
-  multiCafeSearch: (params: { cafe_count: number }) =>
-    track({ name: 'multi_cafe_search', params }),
+  multiPlaceSearch: (params: { place_count: number }) =>
+    track({ name: 'multi_cafe_search', params }), // Event name kept for analytics backward compatibility
 
   freeTextSearch: (params: { has_text: boolean }) =>
     track({ name: 'free_text_search', params }),

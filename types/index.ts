@@ -270,6 +270,86 @@ export function establishmentTypeToGoogleType(type: EstablishmentType): string {
 }
 
 /**
+ * Maps Google Places API types to Loca establishment types
+ * Returns null if the type doesn't match any of our supported establishment types
+ */
+export function googleTypeToEstablishmentType(googleTypes: string[]): EstablishmentType | null {
+  if (!googleTypes || googleTypes.length === 0) {
+    return null;
+  }
+
+  // Priority order: check for specific types first
+  // Cafe/Coffee shop types
+  if (googleTypes.some(t => ['coffee_shop', 'cafe', 'bakery'].includes(t))) {
+    return 'cafe';
+  }
+
+  // Bar types
+  if (googleTypes.some(t => ['bar', 'night_club', 'liquor_store'].includes(t))) {
+    return 'bar';
+  }
+
+  // Museum types
+  if (googleTypes.some(t => ['museum', 'art_gallery', 'tourist_attraction'].includes(t))) {
+    return 'museum';
+  }
+
+  // Restaurant types (checked last as it's most common)
+  if (googleTypes.some(t => ['restaurant', 'meal_takeaway', 'meal_delivery', 'food'].includes(t))) {
+    return 'restaurant';
+  }
+
+  return null;
+}
+
+/**
+ * Detects establishment type from multiple places
+ * Returns the union of types if all places share compatible types
+ * If places have incompatible types, returns the most common type
+ */
+export function detectEstablishmentTypeFromPlaces(places: google.maps.places.PlaceResult[]): EstablishmentType {
+  if (places.length === 0) {
+    return 'cafe'; // Default fallback
+  }
+
+  const detectedTypes: EstablishmentType[] = [];
+
+  for (const place of places) {
+    if (place.types) {
+      const type = googleTypeToEstablishmentType(place.types);
+      if (type) {
+        detectedTypes.push(type);
+      }
+    }
+  }
+
+  if (detectedTypes.length === 0) {
+    return 'cafe'; // Default fallback
+  }
+
+  // Count occurrences of each type
+  const typeCounts = detectedTypes.reduce((acc, type) => {
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {} as Record<EstablishmentType, number>);
+
+  // Get unique types
+  const uniqueTypes = Object.keys(typeCounts) as EstablishmentType[];
+
+  // If all places are the same type, return that type
+  if (uniqueTypes.length === 1) {
+    return uniqueTypes[0];
+  }
+
+  // If multiple types, return the most common one
+  const mostCommonType = uniqueTypes.reduce((a, b) =>
+    typeCounts[a] > typeCounts[b] ? a : b
+  );
+
+  return mostCommonType;
+}
+
+/**
  * Get human-readable label for establishment type
  */
 export function getEstablishmentTypeLabel(type: EstablishmentType): string {

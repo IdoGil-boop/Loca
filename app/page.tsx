@@ -67,9 +67,10 @@ export default function HomePage() {
           <div className="w-full h-full">
             <ResultsMap
               results={[]}
-              center={null}
+              center={{ lat: 40.7128, lng: -74.0060 }}
+              selectedIndex={null}
+              hoveredIndex={null}
               onMarkerClick={() => {}}
-              onMapLoad={() => {}}
             />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl max-w-md text-center">
@@ -127,8 +128,8 @@ export default function HomePage() {
                 {!isLoading && !error && results.length > 0 && (
                   <ResultsList
                     results={results}
-                    onResultClick={() => {}}
-                    onResultHover={() => {}}
+                    onSelectResult={() => {}}
+                    onHover={() => {}}
                     selectedIndex={null}
                     hoveredIndex={null}
                   />
@@ -144,9 +145,10 @@ export default function HomePage() {
               >
                 <ResultsMap
                   results={results}
-                  center={mapCenter}
+                  center={mapCenter || { lat: 40.7128, lng: -74.0060 }}
+                  selectedIndex={null}
+                  hoveredIndex={null}
                   onMarkerClick={() => {}}
-                  onMapLoad={() => {}}
                 />
               </div>
             )}

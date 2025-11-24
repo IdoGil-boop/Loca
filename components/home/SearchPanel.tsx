@@ -188,13 +188,13 @@ export default function SearchPanel() {
       source_city: sourcePlaces.map(p => p.name).join(', '),
       dest_city: destPlace.name || '',
       toggles: vibes,
-      multi_cafe: sourcePlaces.length > 1,
+      multi_place: sourcePlaces.length > 1,
       has_free_text: !!freeText,
     });
 
     // Track additional events
     if (sourcePlaces.length > 1) {
-      analytics.multiCafeSearch({ cafe_count: sourcePlaces.length });
+      analytics.multiPlaceSearch({ place_count: sourcePlaces.length });
     }
     if (freeText.trim()) {
       analytics.freeTextSearch({ has_text: true });

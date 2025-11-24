@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { EstablishmentType, normalizeVibesByType } from '@/types';
+import { EstablishmentType, normalizeVibesByType, detectEstablishmentTypeFromPlaces, getEstablishmentTypeLabel } from '@/types';
 import { loadGoogleMaps } from '@/lib/maps-loader';
-import { EstablishmentTypeSelector } from './EstablishmentTypeSelector';
 
 export interface SearchFormData {
   sourcePlaceIds: string[];
@@ -52,7 +51,7 @@ export function HorizontalSearchForm({
       if (sourceInputRef.current) {
         const sourceAutocomplete = new google.maps.places.Autocomplete(sourceInputRef.current, {
           types: ['establishment'],
-          fields: ['place_id', 'name', 'formatted_address'],
+          fields: ['place_id', 'name', 'formatted_address', 'types'],
         });
 
         sourceAutocomplete.addListener('place_changed', () => {
@@ -61,7 +60,13 @@ export function HorizontalSearchForm({
             setSourcePlaces((prev) => {
               const exists = prev.some((p) => p.place_id === place.place_id);
               if (exists) return prev;
-              return [...prev, place];
+              const newPlaces = [...prev, place];
+
+              // Auto-detect establishment type from all selected places
+              const detectedType = detectEstablishmentTypeFromPlaces(newPlaces);
+              setEstablishmentType(detectedType);
+
+              return newPlaces;
             });
             if (sourceInputRef.current) {
               sourceInputRef.current.value = '';
@@ -112,27 +117,36 @@ export function HorizontalSearchForm({
   };
 
   const removeSourcePlace = (placeId: string) => {
-    setSourcePlaces((prev) => prev.filter((p) => p.place_id !== placeId));
+    setSourcePlaces((prev) => {
+      const newPlaces = prev.filter((p) => p.place_id !== placeId);
+
+      // Re-detect establishment type from remaining places
+      if (newPlaces.length > 0) {
+        const detectedType = detectEstablishmentTypeFromPlaces(newPlaces);
+        setEstablishmentType(detectedType);
+      } else {
+        // Reset to default if no places left
+        setEstablishmentType('cafe');
+      }
+
+      return newPlaces;
+    });
   };
 
   return (
     <div className="bg-white border-b shadow-sm sticky top-0 z-40">
       <form onSubmit={handleSubmit} className="max-w-7xl mx-auto px-4 py-4">
-        {/* Top Row: Establishment Type Selector */}
-        <div className="mb-3">
-          <EstablishmentTypeSelector
-            value={establishmentType}
-            onChange={setEstablishmentType}
-            disabled={isLoading}
-          />
-        </div>
-
         {/* Main Search Row */}
         <div className="flex flex-wrap gap-3 items-start">
           {/* Source Places */}
           <div className="flex-1 min-w-[200px]">
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Your favorite place(s)
+              {sourcePlaces.length > 0 && (
+                <span className="ml-2 text-espresso font-semibold">
+                  ({getEstablishmentTypeLabel(establishmentType)})
+                </span>
+              )}
             </label>
             <input
               ref={sourceInputRef}
