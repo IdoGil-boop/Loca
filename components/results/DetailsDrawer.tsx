@@ -247,7 +247,7 @@ export default function DetailsDrawer({ result, onClose }: DetailsDrawerProps) {
       try {
         await navigator.share({
           title: place.displayName,
-          text: `Check out ${place.displayName} on Elsebrew`,
+          text: `Check out ${place.displayName} on Loca`,
           url: window.location.href,
         });
       } catch (err) {

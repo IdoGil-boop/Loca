@@ -193,7 +193,7 @@ export default function RefineSearchModal({
                 {/* Current source cafes */}
                 <div>
                   <label className="block text-sm font-medium text-charcoal mb-2">
-                    Source Cafés
+                    Source Places
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {sourceNames.map((name, index) => (
@@ -206,7 +206,7 @@ export default function RefineSearchModal({
                     ))}
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Go back to the home page to change source cafés
+                    Go back to the home page to change source places
                   </p>
                 </div>
 

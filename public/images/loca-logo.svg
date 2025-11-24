@@ -1,0 +1,6 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Location pin -->
+  <path d="M16 2C11.5817 2 8 5.58172 8 10C8 14.4183 16 28 16 28C16 28 24 14.4183 24 10C24 5.58172 20.4183 2 16 2Z" fill="#5B4636"/>
+  <circle cx="16" cy="10" r="3" fill="#FAFAF8"/>
+</svg>
+

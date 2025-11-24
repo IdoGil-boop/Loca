@@ -8,7 +8,7 @@ export default function PrivacyPage() {
 
         <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">Introduction</h2>
         <p className="text-gray-700 mb-4">
-          Elsebrew (&quot;I,&quot; &quot;my,&quot; or &quot;the service&quot;) is committed to protecting your privacy. This Privacy
+          Loca (&quot;I,&quot; &quot;my,&quot; or &quot;the service&quot;) is committed to protecting your privacy. This Privacy
           Policy explains how I collect, use, and share information when you use this website.
         </p>
 
@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         <ul className="list-disc pl-6 text-gray-700 mb-4">
           <li>Email address (if you sign up for the newsletter)</li>
           <li>Google account information (name, email, profile picture) if you choose to sign in with Google</li>
-          <li>Search queries (café names and cities you search for)</li>
+          <li>Search queries (place names and cities you search for)</li>
         </ul>
 
         <h3 className="text-xl font-semibold mt-6 mb-3">Automatically collected information</h3>
@@ -30,33 +30,33 @@ export default function PrivacyPage() {
 
         <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">How I use your information</h2>
         <ul className="list-disc pl-6 text-gray-700 mb-4">
-          <li>To provide and improve the café matching service</li>
+          <li>To provide and improve the place matching service</li>
           <li>To send you updates about new features (if you opted in)</li>
           <li>To analyze usage patterns and validate product-market fit</li>
-          <li>To personalize your experience (saved cafés stored locally in your browser)</li>
+          <li>To personalize your experience (saved places stored locally in your browser)</li>
         </ul>
 
         <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">Third-party services</h2>
         <p className="text-gray-700 mb-4">This service uses the following third-party providers:</p>
         <ul className="list-disc pl-6 text-gray-700 mb-4">
-          <li><strong>Google Maps Platform:</strong> For location data, café search, and mapping</li>
+          <li><strong>Google Maps Platform:</strong> For location data, place search, and mapping</li>
           <li><strong>Google Identity Services:</strong> For optional sign-in functionality</li>
           <li><strong>Google Analytics:</strong> For usage analytics (if configured)</li>
-          <li><strong>OpenAI:</strong> For generating café match explanations</li>
+          <li><strong>OpenAI:</strong> For generating place match explanations</li>
           <li><strong>Mailchimp:</strong> For newsletter subscriptions (if configured)</li>
         </ul>
 
         <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">Data storage and retention</h2>
         <p className="text-gray-700 mb-4">
-          Most of your data is stored locally in your browser (saved cafés, sign-in state). I do
-          not store Google Places content (café names, photos, reviews) on servers beyond
+          Most of your data is stored locally in your browser (saved places, sign-in state). I do
+          not store Google Places content (place names, photos, reviews) on servers beyond
           temporary caching (5 minutes) for performance. Search queries may be logged for analytics
           purposes.
         </p>
 
         <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">Your rights</h2>
         <ul className="list-disc pl-6 text-gray-700 mb-4">
-          <li>You can clear your saved cafés and sign-out state by clearing your browser data</li>
+          <li>You can clear your saved places and sign-out state by clearing your browser data</li>
           <li>You can unsubscribe from the newsletter at any time</li>
           <li>You can request deletion of your data by contacting me</li>
         </ul>

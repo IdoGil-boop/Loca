@@ -10,7 +10,7 @@ const path = require('path');
 
 const envPath = path.join(__dirname, '.env.local');
 
-console.log('🔍 Checking Elsebrew environment configuration...\n');
+console.log('🔍 Checking Loca environment configuration...\n');
 
 // Check if .env.local exists
 if (!fs.existsSync(envPath)) {

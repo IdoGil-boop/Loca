@@ -112,8 +112,8 @@ export default function SavedPage() {
       }
     };
 
-    window.addEventListener('elsebrew_auth_change', handleAuthChange);
-    return () => window.removeEventListener('elsebrew_auth_change', handleAuthChange);
+    window.addEventListener('loca_auth_change', handleAuthChange);
+    return () => window.removeEventListener('loca_auth_change', handleAuthChange);
   }, []);
 
   const handleRemove = async (placeId: string) => {
@@ -267,7 +267,7 @@ export default function SavedPage() {
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
           <div className="text-4xl mb-4 animate-bounce">☕</div>
-          <div className="text-lg text-gray-600">Loading saved cafés...</div>
+          <div className="text-lg text-gray-600">Loading saved places...</div>
         </div>
       </div>
     );
@@ -279,9 +279,9 @@ export default function SavedPage() {
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">☕</div>
-          <h1 className="text-2xl font-serif font-semibold mb-2">Sign in to view saved cafés</h1>
+          <h1 className="text-2xl font-serif font-semibold mb-2">Sign in to view saved places</h1>
           <p className="text-gray-600 mb-6">
-            Sign in with Google to save and access your favorite café matches across devices
+            Sign in with Google to save and access your favorite place matches across devices
           </p>
           <div className="flex justify-center">
             <GoogleSignIn onSignIn={setUser} />
@@ -296,12 +296,12 @@ export default function SavedPage() {
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">☕</div>
-          <h1 className="text-2xl font-serif font-semibold mb-2">No saved cafés yet</h1>
+          <h1 className="text-2xl font-serif font-semibold mb-2">No saved places yet</h1>
           <p className="text-gray-600 mb-6">
-            Start exploring and save your favorite café matches
+            Start exploring and save your favorite place matches
           </p>
           <Link href="/" className="btn-primary inline-block">
-            Find cafés
+            Find places
           </Link>
         </div>
       </div>
@@ -343,11 +343,11 @@ export default function SavedPage() {
             </button>
             <div className="h-4 sm:h-6 w-px bg-gray-200"></div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-4xl font-serif font-bold truncate">Saved cafés</h1>
+              <h1 className="text-2xl sm:text-4xl font-serif font-bold truncate">Saved places</h1>
             </div>
           </div>
           <p className="text-xs sm:text-sm text-gray-600">
-            {savedCafes.length} café{savedCafes.length !== 1 ? 's' : ''} saved
+            {savedCafes.length} place{savedCafes.length !== 1 ? 's' : ''} saved
           </p>
         </div>
       </div>

@@ -15,12 +15,12 @@ const client = new DynamoDBClient({
 });
 
 const TABLES = {
-  USERS: process.env.DYNAMODB_USERS_TABLE || 'elsebrew-users',
-  SAVED_PLACES: process.env.DYNAMODB_SAVED_PLACES_TABLE || 'elsebrew-saved-places',
-  SEARCH_HISTORY: process.env.DYNAMODB_SEARCH_HISTORY_TABLE || 'elsebrew-search-history',
-  PLACE_INTERACTIONS: process.env.DYNAMODB_PLACE_INTERACTIONS_TABLE || 'elsebrew-place-interactions',
-  RATE_LIMITS: process.env.DYNAMODB_RATE_LIMITS_TABLE || 'elsebrew-rate-limits',
-  EMAIL_SUBSCRIPTIONS: process.env.DYNAMODB_EMAIL_SUBSCRIPTIONS_TABLE || 'elsebrew-email-subscriptions',
+  USERS: process.env.DYNAMODB_USERS_TABLE || 'loca-users',
+  SAVED_PLACES: process.env.DYNAMODB_SAVED_PLACES_TABLE || 'loca-saved-places',
+  SEARCH_HISTORY: process.env.DYNAMODB_SEARCH_HISTORY_TABLE || 'loca-search-history',
+  PLACE_INTERACTIONS: process.env.DYNAMODB_PLACE_INTERACTIONS_TABLE || 'loca-place-interactions',
+  RATE_LIMITS: process.env.DYNAMODB_RATE_LIMITS_TABLE || 'loca-rate-limits',
+  EMAIL_SUBSCRIPTIONS: process.env.DYNAMODB_EMAIL_SUBSCRIPTIONS_TABLE || 'loca-email-subscriptions',
 };
 
 async function tableExists(tableName: string): Promise<boolean> {

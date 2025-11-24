@@ -56,11 +56,11 @@ IMPORTANT FORMAT:
 - Total length: 2-3 sentences maximum
 - Be specific and avoid generic fluff`;
 
-    const userPrompt = `Source café: ${source.name}
+    const userPrompt = `Source place: ${source.name}
 ${source.rating ? `Rating: ${source.rating}/5` : ''}
 ${source.price_level ? `Price level: ${'$'.repeat(source.price_level)}` : ''}
 
-Candidate café: ${candidate.name}
+Candidate place: ${candidate.name}
 ${candidate.rating ? `Rating: ${candidate.rating}/5 (${candidate.user_ratings_total || 0} reviews)` : ''}
 ${candidate.price_level ? `Price level: ${'$'.repeat(candidate.price_level)}` : ''}
 ${candidate.editorial_summary ? `Google summary: ${candidate.editorial_summary}` : ''}

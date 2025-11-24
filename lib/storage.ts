@@ -1,10 +1,10 @@
 import { SavedCafe, UserProfile } from '@/types';
 
 const STORAGE_KEYS = {
-  USER_PROFILE: 'elsebrew_user_profile',
-  SAVED_CAFES: 'elsebrew_saved_cafes',
-  NAVIGATION_STATE: 'elsebrew_navigation_state',
-  RESULTS_STATE: 'elsebrew_results_state',
+  USER_PROFILE: 'loca_user_profile',
+  SAVED_CAFES: 'loca_saved_cafes',
+  NAVIGATION_STATE: 'loca_navigation_state',
+  RESULTS_STATE: 'loca_results_state',
 };
 
 export const storage = {

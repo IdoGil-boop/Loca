@@ -3,7 +3,7 @@
 # Quick AWS Amplify Deployment Helper
 # This script helps you prepare for AWS Amplify deployment
 
-echo "🚀 Elsebrew AWS Deployment Helper"
+echo "🚀 Loca AWS Deployment Helper"
 echo ""
 
 # Check if git is initialized

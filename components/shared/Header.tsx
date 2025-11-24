@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { storage } from '@/lib/storage';
 import { UserProfile } from '@/types';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import { analytics } from '@/lib/analytics';
+import SavedPlacesDropdown from '@/components/saved/SavedPlacesDropdown';
 
 export default function Header() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -54,7 +56,7 @@ export default function Header() {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      window.removeEventListener('elsebrew_auth_change', handleAuthChange);
+      window.removeEventListener('loca_auth_change', handleAuthChange);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
@@ -65,7 +67,7 @@ export default function Header() {
     setUser(null);
     setIsDropdownOpen(false);
     console.log('[Header] Dispatching auth change event');
-    window.dispatchEvent(new Event('elsebrew_auth_change'));
+    window.dispatchEvent(new Event('loca_auth_change'));
   };
 
   const handleBuyMeCoffee = () => {
@@ -81,7 +83,13 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center space-x-2 group">
-              <div className="text-2xl transition-transform group-hover:scale-105">☕</div>
+              <Image 
+                src="/images/loca-logo.svg" 
+                alt="Loca" 
+                width={24} 
+                height={24} 
+                className="transition-transform group-hover:scale-105"
+              />
               <span className="text-xl font-serif font-semibold text-espresso">
                 Loca
               </span>
@@ -99,79 +107,66 @@ export default function Header() {
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-1 sm:space-x-2 group">
-            <div className="text-xl sm:text-2xl transition-transform group-hover:scale-105">☕</div>
+            <Image 
+              src="/images/loca-logo.svg" 
+              alt="Loca" 
+              width={24} 
+              height={24} 
+              className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-105"
+            />
             <span className="text-lg sm:text-xl font-serif font-semibold text-espresso">
-              Elsebrew
+              Loca
             </span>
           </Link>
 
           {/* Navigation */}
           <nav className="flex items-center space-x-2 sm:space-x-4">
             {user ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-                >
-                  {user.picture ? (
-                    <img
-                      src={user.picture}
-                      alt={user.name}
-                      className="w-8 h-8 rounded-full border border-gray-200"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        console.error('Failed to load profile picture:', user.picture);
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-espresso text-white flex items-center justify-center text-sm font-medium">
-                      {user.name?.[0]?.toUpperCase() || '?'}
+              <>
+                <SavedPlacesDropdown user={user} />
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+                  >
+                    {user.picture ? (
+                      <img
+                        src={user.picture}
+                        alt={user.name}
+                        className="w-8 h-8 rounded-full border border-gray-200"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          console.error('Failed to load profile picture:', user.picture);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-espresso text-white flex items-center justify-center text-sm font-medium">
+                        {user.name?.[0]?.toUpperCase() || '?'}
+                      </div>
+                    )}
+                    <svg
+                      className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        Logout
+                      </button>
                     </div>
                   )}
-                  <svg
-                    className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
-                    <Link
-                      href="/saved"
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        // Store navigation state when clicking saved link
-                        const currentPath = window.location.pathname;
-                        const currentSearch = window.location.search;
-                        if (currentPath === '/results' && currentSearch) {
-                          storage.setNavigationState({
-                            previousRoute: '/results',
-                            searchParams: currentSearch,
-                          });
-                        } else if (currentPath === '/') {
-                          storage.setNavigationState({
-                            previousRoute: '/',
-                          });
-                        }
-                      }}
-                      className="block px-4 py-2 text-sm text-charcoal hover:bg-gray-50 transition-colors"
-                    >
-                      Saved Places
-                    </Link>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+                </div>
+              </>
             ) : (
               <>
                 {console.log('[Header] Rendering GoogleSignIn with key:', signInKey)}

@@ -1033,7 +1033,7 @@ function ResultsContent() {
       // Check if any failed
       const failed = responses.filter(r => !r.ok);
       if (failed.length > 0) {
-        throw new Error(`Failed to save ${failed.length} cafe(s)`);
+        throw new Error(`Failed to save ${failed.length} place(s)`);
       }
 
       // Check if we need to save to localStorage (AWS not configured)
@@ -1054,7 +1054,7 @@ function ResultsContent() {
 
       analytics.saveAll({ count: results.length });
       showToastMessage(
-        `Successfully saved ${results.length} café${results.length > 1 ? 's' : ''}!`,
+        `Successfully saved ${results.length} place${results.length > 1 ? 's' : ''}!`,
         'success'
       );
     } catch (error) {

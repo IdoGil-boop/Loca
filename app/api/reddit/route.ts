@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
         const response = await fetch(searchUrl, {
           headers: {
-            'User-Agent': 'Elsebrew/1.0',
+            'User-Agent': 'Loca/1.0',
           },
         });
 
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 
         const response = await fetch(subredditUrl, {
           headers: {
-            'User-Agent': 'Elsebrew/1.0',
+            'User-Agent': 'Loca/1.0',
           },
         });
 

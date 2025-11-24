@@ -4,36 +4,35 @@ export default function AboutPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="prose prose-lg">
-        <h1 className="text-4xl font-serif font-bold mb-6">About Elsebrew</h1>
+        <h1 className="text-4xl font-serif font-bold mb-6">About Loca</h1>
 
         <p className="text-lg text-gray-600 mb-8">
-          Discovering great coffee in a new city shouldn&apos;t be a gamble.
+          Discovering great places in a new city shouldn&apos;t be a gamble.
         </p>
 
         <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">My mission</h2>
         <p className="text-gray-700 mb-4">
-          I built Elsebrew to help coffee lovers find their café&apos;s &quot;twin&quot; in any city around the world.
+          I built Loca to help you find places that match your vibe in any city around the world.
           Whether you&apos;re traveling for work, vacation, or just exploring a new neighborhood,
-          I&apos;ll match you with coffee shops that share the same vibe as your favorites back home.
+          I&apos;ll match you with places that share the same characteristics as your favorites back home.
         </p>
 
         <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">How it works</h2>
         <p className="text-gray-700 mb-4">
           I use real Google Maps data combined with AI to understand what makes your favorite
-          café special—whether it&apos;s the specialty roasting, minimalist aesthetic, late-night hours,
-          or laptop-friendly atmosphere—and find similar spots anywhere in the world.
+          place special—whether it&apos;s the atmosphere, aesthetic, hours, or amenities—and find similar spots anywhere in the world.
         </p>
 
-        <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">Why &quot;Elsebrew&quot;?</h2>
+        <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">Why &quot;Loca&quot;?</h2>
         <p className="text-gray-700 mb-4">
-          Because every great café has an &quot;elsewhere&quot; counterpart waiting to be discovered.
-          I&apos;m building a community of coffee explorers who believe that the perfect cup
+          Because every great place has a counterpart waiting to be discovered elsewhere.
+          I&apos;m building a community of place explorers who believe that the perfect spot
           is never too far away.
         </p>
 
         <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">This is an MVP</h2>
         <p className="text-gray-700 mb-4">
-          Elsebrew is currently a validation project. I&apos;m testing whether coffee lovers
+          Loca is currently a validation project. I&apos;m testing whether people
           actually want this tool before building the full product. Your searches are real,
           the maps are real, and the results are powered by actual Google Places data.
         </p>

@@ -97,7 +97,7 @@ export default function TypingTitle() {
 
   return (
     <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-bold text-espresso mb-4 text-left sm:text-center px-2">
-      Find Your Local Café in{' '}
+      Find Your Perfect Place in{' '}
       <span className="inline-block min-w-[200px] sm:min-w-[300px] text-left">
         {displayText}
         <motion.span

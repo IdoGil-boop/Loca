@@ -90,7 +90,7 @@ export default function SearchPanel() {
 
           if (hasBlockedType) {
             console.warn('[SearchPanel] Blocked destination type:', place.types);
-            setToastMessage('Oops! I still didn\'t get Elsebrew to support this large area, but I\'m working on it! Please try something a bit more specific like a city or neighborhood.');
+            setToastMessage('Oops! I still didn\'t get Loca to support this large area, but I\'m working on it! Please try something a bit more specific like a city or neighborhood.');
             setShowToast(true);
             if (destInputRef.current) {
               destInputRef.current.value = '';
@@ -238,9 +238,9 @@ export default function SearchPanel() {
         {/* Source café(s) */}
         <div>
           <label htmlFor="source" className="block text-sm font-medium text-charcoal mb-2">
-            Your favorite café(s)
+            Your favorite place(s)
             <span className="text-xs text-gray-500 ml-2 font-normal">
-              You can add multiple cafes to find places that match all of them
+              You can add multiple places to find spots that match all of them
             </span>
           </label>
           <input

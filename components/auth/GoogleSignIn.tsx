@@ -82,7 +82,7 @@ export default function GoogleSignIn({ onSignIn }: GoogleSignInProps) {
     });
 
     // Double-check localStorage directly
-    const rawData = localStorage.getItem('elsebrew_user_profile');
+    const rawData = localStorage.getItem('loca_user_profile');
     console.log('[GoogleSignIn] Raw localStorage data:', rawData ? 'exists' : 'missing');
     if (rawData) {
       const parsed = JSON.parse(rawData);
@@ -111,7 +111,7 @@ export default function GoogleSignIn({ onSignIn }: GoogleSignInProps) {
     onSignIn(userProfile);
 
     // Dispatch event for other components
-    window.dispatchEvent(new Event('elsebrew_auth_change'));
+    window.dispatchEvent(new Event('loca_auth_change'));
 
     // Track sign-in
     analytics.clickSignIn();

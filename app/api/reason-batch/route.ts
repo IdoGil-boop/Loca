@@ -20,38 +20,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the enhanced system prompt
-    const systemPrompt = `You are Elsebrew, an AI that matches coffee shops based on their characteristics, vibe, community reputation, visual aesthetics, and place type similarities.
+    const systemPrompt = `You are Loca, an AI that matches places based on their characteristics, vibe, community reputation, visual aesthetics, and place type similarities.
 
-Your job is to create compelling, personality-rich explanations of why cafés match a source café.
+Your job is to create compelling, personality-rich explanations of why places match a source place.
 
 CRITICAL REQUIREMENTS:
-1. Generate ${candidates.length} UNIQUE descriptions, one for each café listed
+1. Generate ${candidates.length} UNIQUE descriptions, one for each place listed
 2. Each description MUST be distinctly different from the others
 3. Each description MUST start with a DIFFERENT short, punchy descriptor (3-5 words max)
-4. Vary your approach for each café - emphasize different aspects (ambiance, community, quality, location, style, amenities, etc.)
+4. Vary your approach for each place - emphasize different aspects (ambiance, community, quality, location, style, amenities, etc.)
 5. Naturally synthesize ALL the data provided - don't just list features, weave them into compelling narratives
-6. When multiple characteristics are listed, pick the most distinctive ones that set this café apart
+6. When multiple characteristics are listed, pick the most distinctive ones that set this place apart
 
 FORMAT for each description:
-- First sentence: A SHORT, punchy descriptor that captures the café's MOST DOMINANT characteristic
+- First sentence: A SHORT, punchy descriptor that captures the place's MOST DOMINANT characteristic
 - Following sentences: Weave together the data into a natural, flowing explanation - mention the most compelling amenities, aesthetic, community reputation, or unique features
-- Total length: 2-3 sentences maximum per café
+- Total length: 2-3 sentences maximum per place
 - Be specific and avoid generic fluff
 - NEVER use labels like "Amenities:" or "Serves:" - instead naturally incorporate features into sentences
 
 VARIETY IS ESSENTIAL:
-- Use different starting phrases for each café
+- Use different starting phrases for each place
 - Emphasize different strengths for each (one focuses on Reddit buzz, another on visual style, another on ratings, etc.)
 - Vary sentence structure and tone
-- Make each description feel unique and specific to that café
+- Make each description feel unique and specific to that place
 
 Examples of DIVERSE starting phrases:
-- "Hip third-wave spot"
-- "Known among coffee enthusiasts"
+- "Hip neighborhood spot"
+- "Known among enthusiasts"
 - "Industrial-chic neighborhood gem"
 - "Bright, Instagram-worthy space"
 - "Local favorite with loyal following"
-- "Minimalist specialty coffee bar"
+- "Minimalist specialty spot"
 - "Cozy community gathering spot"
 - "High-rated artisanal roastery"
 
@@ -59,7 +59,7 @@ Return ONLY a JSON array of ${candidates.length} description strings, nothing el
 
     // Build candidate descriptions
     const candidatesText = candidates.map((candidate: any, index: number) => {
-      const parts: string[] = [`CAFÉ ${index + 1}: ${candidate.name}`];
+      const parts: string[] = [`PLACE ${index + 1}: ${candidate.name}`];
 
       // Rating and reviews
       if (candidate.rating) {
@@ -144,15 +144,15 @@ Return ONLY a JSON array of ${candidates.length} description strings, nothing el
       })
       .join(', ') : '';
 
-    const userPrompt = `Source café: ${source.name}
+    const userPrompt = `Source place: ${source.name}
 Rating: ${source.rating || 'N/A'}/5
 Price: ${source.price_level ? '$'.repeat(source.price_level) : 'N/A'}
 Location: ${city || 'Unknown'}
 ${vibePreferences ? `User preferences: ${vibePreferences}` : ''}
 
-IMPORTANT: When describing matches, consider the user's preferences (${vibePreferences || 'general quality match'}). If they want "Open late night", emphasize extended hours. If they want "Laptop-friendly", mention workspace amenities. Match the vibe preferences to the café characteristics.
+IMPORTANT: When describing matches, consider the user's preferences (${vibePreferences || 'general quality match'}). If they want "Open late night", emphasize extended hours. If they want "Laptop-friendly", mention workspace amenities. Match the vibe preferences to the place characteristics.
 
-Here are ${candidates.length} candidate cafés to match. Create a UNIQUE, DIVERSE description for EACH ONE:
+Here are ${candidates.length} candidate places to match. Create a UNIQUE, DIVERSE description for EACH ONE:
 
 ${candidatesText}
 
