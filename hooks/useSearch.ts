@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { PlaceMatch, EstablishmentType, VibeToggles, PlaceBasicInfo } from '@/types';
+import { PlaceMatch, EstablishmentType, PlaceBasicInfo } from '@/types';
 // Note: searchCafes is a legacy function name - it works for all establishment types (cafe, restaurant, museum, bar)
 import { searchCafes } from '@/lib/places-search';
 import { Loader } from '@googlemaps/js-api-loader';
@@ -13,7 +13,6 @@ export interface SearchParams {
   sourcePlaceIds: string[];
   sourceNames: string[];
   destinationCity: string;
-  vibes: VibeToggles;
   freeText?: string;
   establishmentType: EstablishmentType;
 }
@@ -52,7 +51,7 @@ export function useSearch(): UseSearchResult {
     const loader = new Loader({
       apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
       version: 'weekly',
-      libraries: ['places', 'marker', 'geocoding'],
+      libraries: ['places', 'marker', 'geocoding', 'maps'],
     });
 
     await loader.load();
@@ -214,6 +213,26 @@ export function useSearch(): UseSearchResult {
       return;
     }
 
+    // Generate cache key from search params
+    const cacheKey = JSON.stringify({
+      sourcePlaceIds: params.sourcePlaceIds.sort(),
+      destinationCity: params.destinationCity,
+      freeText: params.freeText || '',
+      establishmentType: params.establishmentType,
+    });
+
+    // Check if we have cached results
+    const cachedState = storage.getResultsState();
+    if (cachedState && cachedState.searchParams === cacheKey) {
+      logger.debug('[useSearch] Using cached results');
+      setResults(cachedState.results);
+      if (cachedState.mapCenter) {
+        setMapCenter(cachedState.mapCenter);
+      }
+      setIsLoading(false);
+      return;
+    }
+
     isSearchInProgress.current = true;
     setIsLoading(true);
     setError(null);
@@ -273,7 +292,7 @@ export function useSearch(): UseSearchResult {
       let customKeywords: string[] | undefined;
       if (originPlaces.length > 1 || params.freeText) {
         try {
-          const baseKeywords = await extractKeywordsFromMultipleCafes(originPlaces, params.vibes, googleMaps);
+          const baseKeywords = await extractKeywordsFromMultipleCafes(originPlaces, googleMaps);
           const freeTextKeywords = params.freeText ? await processFreeTextWithAI(params.freeText) : [];
           customKeywords = [
             ...baseKeywords.slice(0, 3),
@@ -293,15 +312,10 @@ export function useSearch(): UseSearchResult {
           headers['Authorization'] = `Bearer ${authToken}`;
         }
 
-        const vibesArray = Object.entries(params.vibes)
-          .filter(([_, enabled]) => !!enabled)
-          .map(([vibe]) => vibe);
-
         const filterResponse = await fetch(
           `/api/user/place-interactions/filter?` +
             new URLSearchParams({
               destination: params.destinationCity,
-              vibes: JSON.stringify(vibesArray),
               freeText: params.freeText || '',
               originPlaceIds: JSON.stringify(params.sourcePlaceIds),
             }).toString(),
@@ -328,7 +342,6 @@ export function useSearch(): UseSearchResult {
       analytics.searchSubmit({
         source_city: sourceNamesForAnalytics.join(', '),
         dest_city: params.destinationCity,
-        toggles: params.vibes,
         multi_place: params.sourcePlaceIds.length > 1,
         has_free_text: !!params.freeText,
       });
@@ -339,7 +352,6 @@ export function useSearch(): UseSearchResult {
         sourcePlace,
         destinationCenter,
         destinationBounds,
-        params.vibes,
         customKeywords,
         false,
         destinationResult.types || [],
@@ -351,17 +363,115 @@ export function useSearch(): UseSearchResult {
         params.establishmentType
       );
 
-      // 8. Update results
-      setResults(searchResult.results);
+      logger.debug('[useSearch] 🔍 Enriching results with image analysis and reasoning');
 
-      // 9. Track results loaded
+      // 8. Enrich results with image analysis and reasoning
+      const enrichedResults = await Promise.all(
+        searchResult.results.map(async (result) => {
+          // Fetch image analysis (fire and forget with timeout)
+          let imageAnalysis: string | undefined;
+          try {
+            if (result.place.photos && result.place.photos.length > 0) {
+              const photo = result.place.photos[0] as any;
+              const photoUrl = typeof photo.getURI === 'function'
+                ? photo.getURI({ maxWidth: 800 })
+                : typeof photo.getUrl === 'function'
+                ? photo.getUrl({ maxWidth: 800 })
+                : null;
+
+              if (photoUrl) {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 3000);
+
+                const response = await fetch('/api/analyze-image', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ imageUrl: photoUrl }),
+                  signal: controller.signal,
+                });
+
+                clearTimeout(timeout);
+
+                if (response.ok) {
+                  const data = await response.json();
+                  imageAnalysis = data.analysis;
+                }
+              }
+            }
+          } catch (err) {
+            // Ignore errors, imageAnalysis will be undefined
+          }
+
+          return {
+            ...result,
+            imageAnalysis,
+          };
+        })
+      );
+
+      // 9. Generate reasonings in batch
+      let resultsWithReasoning = enrichedResults;
+      try {
+        const batchResponse = await fetch('/api/reason-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source: {
+              name: sourcePlace.displayName,
+              price_level: sourcePlace.priceLevel,
+              rating: sourcePlace.rating,
+            },
+            candidates: enrichedResults.map(match => ({
+              name: match.place.displayName,
+              price_level: match.place.priceLevel,
+              rating: match.place.rating,
+              user_ratings_total: match.place.userRatingCount,
+              editorial_summary: match.place.editorialSummary,
+              keywords: match.matchedKeywords,
+              imageAnalysis: match.imageAnalysis,
+              outdoorSeating: match.place.outdoorSeating,
+              takeout: match.place.takeout,
+              delivery: match.place.delivery,
+              dineIn: match.place.dineIn,
+              reservable: match.place.reservable,
+              goodForGroups: match.place.goodForGroups,
+              servesCoffee: match.place.servesCoffee,
+              servesBreakfast: match.place.servesBreakfast,
+              servesBrunch: match.place.servesBrunch,
+            })),
+            city: params.destinationCity,
+          }),
+        });
+
+        if (batchResponse.ok) {
+          const { reasonings } = await batchResponse.json();
+          resultsWithReasoning = enrichedResults.map((match, index) => ({
+            ...match,
+            reasoning: reasonings?.[index] || 'Similar vibe and quality.',
+          }));
+          logger.debug('[useSearch] Reasonings generated', { count: reasonings?.length });
+        }
+      } catch (err) {
+        logger.error('[useSearch] Failed to generate reasonings:', err);
+      }
+
+      // 10. Update results with enriched data
+      setResults(resultsWithReasoning);
+
+      // 11. Cache results for future use
+      storage.setResultsState(cacheKey, resultsWithReasoning, {
+        lat: destinationCenter.lat(),
+        lng: destinationCenter.lng(),
+      });
+
+      // 12. Track results loaded
       analytics.resultsLoaded({
-        candidate_count: searchResult.results.length,
+        candidate_count: resultsWithReasoning.length,
         latency_ms: Math.max(0, Date.now() - searchStartTime),
       });
 
       logger.info('[useSearch] Search completed successfully', {
-        resultCount: searchResult.results.length,
+        resultCount: resultsWithReasoning.length,
         destination: params.destinationCity,
         establishmentType: params.establishmentType,
         hasMorePages: searchResult.hasMorePages,

@@ -1,10 +1,9 @@
-import { PlaceBasicInfo, VibeToggles, CafeMatch, PlaceMatch, EstablishmentType, establishmentTypeToGoogleType } from '@/types';
+import { PlaceBasicInfo, CafeMatch, PlaceMatch, EstablishmentType, establishmentTypeToGoogleType } from '@/types';
 import { buildSearchKeywords, scoreCafe, calculateDistance } from './scoring';
 import { AdvancedPlaceFieldValues } from './googlePlaceFields';
 
 async function fetchAdvancedPlaceFields(
   placeIds: string[],
-  vibes: VibeToggles,
   keywords: string[],
   freeText: string = '',
 ): Promise<Record<string, AdvancedPlaceFieldValues>> {
@@ -20,7 +19,6 @@ async function fetchAdvancedPlaceFields(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         placeIds: uniqueIds,
-        vibes,
         keywords,
         freeText,
       }),
@@ -60,132 +58,12 @@ export interface SearchCafesResult {
   nextPageToken?: string;
 }
 
-/**
- * Map vibes to Google Place types that should be included/preferred in search
- * These types will influence what Google returns
- */
-function vibeToPlaceTypes(vibes: VibeToggles, establishmentType: EstablishmentType): string[] {
-  const types: string[] = [];
-
-  // Type-safe vibe checking
-  if ('roastery' in vibes && vibes.roastery) {
-    types.push('coffee_roastery'); // Not a real Google type, will be used in text query
-  }
-
-  if ('laptopFriendly' in vibes && vibes.laptopFriendly) {
-    types.push('workspace'); // Will be used in text query
-  }
-
-  if (vibes.nightOwl) {
-    types.push('night_club', 'bar'); // Late-night establishments
-  }
-
-  if (vibes.cozy) {
-    if (establishmentType === 'cafe') {
-      types.push('cafe'); // Prefer cafe over coffee_shop for cozier vibes
-    }
-  }
-
-  if (vibes.minimalist) {
-    types.push('modern'); // Will be used in text query
-  }
-
-  return types;
-}
-
-/**
- * Build enhanced text query that includes vibe-related keywords
- */
-function buildVibeEnhancedQuery(baseKeywords: string[], vibes: VibeToggles, establishmentType: EstablishmentType): string {
-  const vibeKeywords: string[] = [];
-
-  // Type-safe vibe checking with 'in' operator
-  if ('roastery' in vibes && vibes.roastery) {
-    vibeKeywords.push('roastery', 'roaster');
-  }
-
-  if ('lightRoast' in vibes && vibes.lightRoast) {
-    vibeKeywords.push('light roast', 'specialty coffee');
-  }
-
-  if ('laptopFriendly' in vibes && vibes.laptopFriendly) {
-    vibeKeywords.push('workspace', 'wifi', 'laptop friendly');
-  }
-
-  if (vibes.nightOwl) {
-    vibeKeywords.push('late night', 'open late');
-  }
-
-  if (vibes.cozy) {
-    vibeKeywords.push('cozy', 'intimate');
-  }
-
-  if (vibes.minimalist) {
-    vibeKeywords.push('minimalist', 'modern', 'clean design');
-  }
-
-  if (vibes.allowsDogs) {
-    vibeKeywords.push('dog friendly', 'pet friendly');
-  }
-
-  if ('servesVegetarian' in vibes && vibes.servesVegetarian) {
-    vibeKeywords.push('vegetarian', 'vegan options');
-  }
-
-  if ('brunch' in vibes && vibes.brunch) {
-    vibeKeywords.push('brunch', 'breakfast');
-  }
-
-  // Restaurant-specific vibes
-  if ('outdoorDining' in vibes && vibes.outdoorDining) {
-    vibeKeywords.push('outdoor dining', 'patio', 'terrace');
-  }
-
-  if ('fineDining' in vibes && vibes.fineDining) {
-    vibeKeywords.push('fine dining', 'upscale', 'elegant');
-  }
-
-  if ('romanticAmbiance' in vibes && vibes.romanticAmbiance) {
-    vibeKeywords.push('romantic', 'date night', 'intimate');
-  }
-
-  // Museum-specific vibes
-  if ('interactive' in vibes && vibes.interactive) {
-    vibeKeywords.push('interactive', 'hands-on', 'immersive');
-  }
-
-  if ('modernArt' in vibes && vibes.modernArt) {
-    vibeKeywords.push('modern art', 'contemporary', 'gallery');
-  }
-
-  if ('historical' in vibes && vibes.historical) {
-    vibeKeywords.push('historical', 'history', 'heritage');
-  }
-
-  // Bar-specific vibes
-  if ('liveMusic' in vibes && vibes.liveMusic) {
-    vibeKeywords.push('live music', 'entertainment', 'performance');
-  }
-
-  if ('cocktailBar' in vibes && vibes.cocktailBar) {
-    vibeKeywords.push('cocktails', 'mixology', 'craft cocktails');
-  }
-
-  if ('craftBeer' in vibes && vibes.craftBeer) {
-    vibeKeywords.push('craft beer', 'brewery', 'beer selection');
-  }
-
-  // Combine base keywords with top 2 vibe keywords
-  const allKeywords = [...baseKeywords.slice(0, 2), ...vibeKeywords.slice(0, 2)];
-  return allKeywords.slice(0, 5).join(' ');
-}
 
 export const searchCafes = async (
   googleMaps: any,
   sourcePlace: PlaceBasicInfo,
   destinationCenter: google.maps.LatLng,
   destinationBounds: google.maps.LatLngBounds,
-  vibes: VibeToggles,
   customKeywords?: string[], // Optional custom keywords from multi-cafe + free text
   isRefinement: boolean = false, // Flag to prioritize refinement keywords
   destinationTypes: string[] = [], // Destination types to determine if it's an area or point
@@ -197,7 +75,7 @@ export const searchCafes = async (
   establishmentType: EstablishmentType = 'cafe' // Type of establishment to search for
 ): Promise<SearchCafesResult> => {
   const google = googleMaps;
-  const keywords = customKeywords || buildSearchKeywords(sourcePlace, vibes);
+  const keywords = customKeywords || buildSearchKeywords(sourcePlace, establishmentType);
 
   // Extract unique types from all origin places to enhance the search query
   const originTypes = new Set<string>();
@@ -225,16 +103,14 @@ export const searchCafes = async (
     });
   }
 
-  // Build personalized text query from keywords, origin types, and vibes
+  // Build personalized text query from keywords and origin types
   // Include origin types (converted to readable text) in the query to bias results
   const typeKeywords = Array.from(originTypes)
     .map(type => type.replace(/_/g, ' ')) // Convert snake_case to readable text
     .slice(0, 3); // Limit to additional type keywords
 
   const allKeywords = [...keywords.slice(0, 3), ...typeKeywords];
-
-  // Enhance query with vibe-specific keywords to influence Google's results
-  const textQuery = buildVibeEnhancedQuery(allKeywords, vibes, establishmentType);
+  const textQuery = allKeywords.slice(0, 5).join(' ');
 
   // Determine if destination is an area (city, country, etc.) or a specific point (hotel, restaurant)
   const AREA_TYPES = [
@@ -261,7 +137,6 @@ export const searchCafes = async (
     keywords,
     originTypes: Array.from(originTypes),
     textQuery,
-    vibes,
   });
 
   // Use new Text Search API with personalized query + type filtering
@@ -426,7 +301,6 @@ export const searchCafes = async (
     console.log('[Places Search] Fetching advanced fields for', placeIds.length, 'places');
     const advancedFieldsByPlaceId = await fetchAdvancedPlaceFields(
       placeIds,
-      vibes,
       keywords,
       freeText,
     );
@@ -571,10 +445,10 @@ export const searchCafes = async (
         const { score, matchedKeywords, typeOverlapDetails } = scoreCafe(
           place,
           sourcePlace,
-          vibes,
           keywords,
           isRefinement,
-          originPlaces.length > 0 ? originPlaces : [sourcePlace] // Pass all origins or just the source
+          originPlaces.length > 0 ? originPlaces : [sourcePlace], // Pass all origins or just the source
+          establishmentType
         );
         const distanceToCenter = place.location
           ? calculateDistance(destinationCenter, place.location)

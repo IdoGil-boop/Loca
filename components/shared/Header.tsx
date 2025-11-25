@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { storage } from '@/lib/storage';
@@ -76,13 +75,21 @@ export default function Header() {
     window.open(buyMeCoffeeUrl, '_blank');
   };
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.location.href = '/';
+  };
+
   // Prevent hydration mismatch
   if (!isClient) {
     return (
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center space-x-2 group">
+            <button 
+              onClick={handleLogoClick}
+              className="flex items-center space-x-2 group"
+            >
               <Image 
                 src="/images/loca-logo.svg" 
                 alt="Loca" 
@@ -93,7 +100,7 @@ export default function Header() {
               <span className="text-xl font-serif font-semibold text-espresso">
                 Loca
               </span>
-            </Link>
+            </button>
             <nav className="flex items-center space-x-4"></nav>
           </div>
         </div>
@@ -106,7 +113,10 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-1 sm:space-x-2 group">
+          <button 
+            onClick={handleLogoClick}
+            className="flex items-center space-x-1 sm:space-x-2 group"
+          >
             <Image 
               src="/images/loca-logo.svg" 
               alt="Loca" 
@@ -117,7 +127,7 @@ export default function Header() {
             <span className="text-lg sm:text-xl font-serif font-semibold text-espresso">
               Loca
             </span>
-          </Link>
+          </button>
 
           {/* Navigation */}
           <nav className="flex items-center space-x-2 sm:space-x-4">

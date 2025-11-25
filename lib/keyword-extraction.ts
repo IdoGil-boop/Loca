@@ -1,4 +1,4 @@
-import { PlaceBasicInfo, VibeToggles, EstablishmentType } from '@/types';
+import { PlaceBasicInfo, EstablishmentType } from '@/types';
 import { devLog } from './dev-logger';
 
 /**
@@ -155,7 +155,6 @@ function extractKeywordsFromText(text: string, establishmentType: EstablishmentT
  */
 export async function extractKeywordsFromMultipleCafes(
   placesInfo: PlaceBasicInfo[],
-  vibes: VibeToggles,
   googleMaps: any
 ): Promise<string[]> {
   devLog.search('Multi-cafe keyword extraction', {
@@ -190,62 +189,12 @@ export async function extractKeywordsFromMultipleCafes(
 
   devLog.keywords('Consensus keywords', consensusKeywords);
 
-  // Add vibe keywords
-  const vibeKeywords = buildVibeKeywords(vibes);
-
-  devLog.keywords('Vibe keywords', vibeKeywords);
-
-  // Combine: vibe keywords + consensus keywords + base
-  const finalKeywords = ['cafe', 'coffee', ...vibeKeywords, ...consensusKeywords];
+  // Combine: consensus keywords + base
+  const finalKeywords = ['cafe', 'coffee', ...consensusKeywords];
 
   devLog.keywords('Final combined keywords', finalKeywords);
 
   return finalKeywords;
-}
-
-/**
- * Build vibe-based keywords
- */
-function buildVibeKeywords(vibes: VibeToggles): string[] {
-  const keywords: string[] = [];
-
-  if (vibes.roastery) {
-    keywords.push('single origin', 'roastery');
-  }
-
-  if (vibes.lightRoast) {
-    keywords.push('filter', 'pour over');
-  }
-
-  if (vibes.laptopFriendly) {
-    keywords.push('laptop', 'wifi');
-  }
-
-  if (vibes.nightOwl) {
-    keywords.push('late', 'night');
-  }
-
-  if (vibes.cozy) {
-    keywords.push('cozy');
-  }
-
-  if (vibes.minimalist) {
-    keywords.push('minimalist', 'modern');
-  }
-
-  if (vibes.allowsDogs) {
-    keywords.push('dog friendly', 'pet friendly');
-  }
-
-  if (vibes.servesVegetarian) {
-    keywords.push('vegetarian', 'vegan');
-  }
-
-  if (vibes.brunch) {
-    keywords.push('brunch', 'breakfast');
-  }
-
-  return keywords;
 }
 
 /**

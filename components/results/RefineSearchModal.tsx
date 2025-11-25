@@ -2,33 +2,32 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { VibeToggles } from '@/types';
-import { useRouter } from 'next/navigation';
 import { analytics } from '@/lib/analytics';
 import { getAuthToken } from '@/lib/storage';
 import Toast from '@/components/shared/Toast';
+import { EstablishmentType } from '@/types';
 
 interface RefineSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentVibes: VibeToggles;
   currentFreeText?: string;
   sourcePlaceIds: string[];
   sourceNames: string[];
   destCity: string;
+  establishmentType: EstablishmentType;
+  onApply: (freeText: string) => Promise<void>;
 }
 
 export default function RefineSearchModal({
   isOpen,
   onClose,
-  currentVibes,
   currentFreeText = '',
   sourcePlaceIds,
   sourceNames,
   destCity,
+  establishmentType,
+  onApply,
 }: RefineSearchModalProps) {
-  const router = useRouter();
-  const [vibes, setVibes] = useState<VibeToggles>(currentVibes);
   const [freeText, setFreeText] = useState(currentFreeText);
   const [isCheckingRateLimit, setIsCheckingRateLimit] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -36,13 +35,8 @@ export default function RefineSearchModal({
   const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
-    setVibes(currentVibes);
     setFreeText(currentFreeText);
-  }, [currentVibes, currentFreeText, isOpen]);
-
-  const toggleVibe = (key: keyof VibeToggles) => {
-    setVibes((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+  }, [currentFreeText, isOpen]);
 
   const handleApply = async () => {
     try {
@@ -106,27 +100,14 @@ export default function RefineSearchModal({
         return; // Don't navigate, don't close modal
       }
 
-      // Rate limit allows, proceed with navigation
+      // Rate limit allows, proceed with search
       // Track refinement
       analytics.refineSearchApply({
-        vibes_changed: JSON.stringify(vibes) !== JSON.stringify(currentVibes),
         free_text_added: !!freeText.trim() && freeText !== currentFreeText,
       });
 
-      const params = new URLSearchParams({
-        sourcePlaceIds: JSON.stringify(sourcePlaceIds),
-        sourceNames: JSON.stringify(sourceNames),
-        destCity,
-        vibes: JSON.stringify(vibes),
-        refineSearch: 'true', // Flag to force new search and prioritize refinement
-      });
-
-      if (freeText.trim()) {
-        params.append('freeText', freeText.trim());
-      }
-
-      // Force a new search by updating URL
-      router.push(`/results?${params.toString()}`);
+      // Call the onApply callback to trigger search
+      await onApply(freeText.trim());
       onClose();
     } catch (error) {
       console.error('Error applying refinement:', error);
@@ -137,17 +118,6 @@ export default function RefineSearchModal({
     }
   };
 
-  const vibeOptions: { key: keyof VibeToggles; label: string }[] = [
-    { key: 'roastery', label: 'Roastery' },
-    { key: 'lightRoast', label: 'Light roast / filter-first' },
-    { key: 'laptopFriendly', label: 'Laptop-friendly' },
-    { key: 'nightOwl', label: 'Night-owl' },
-    { key: 'cozy', label: 'Cozy' },
-    { key: 'minimalist', label: 'Minimalist' },
-    { key: 'allowsDogs', label: 'Allows dogs' },
-    { key: 'servesVegetarian', label: 'Serves vegetarian' },
-    { key: 'brunch', label: 'Brunch' },
-  ];
 
   return (
     <>
@@ -221,29 +191,6 @@ export default function RefineSearchModal({
                   <p className="text-xs text-gray-500 mt-2">
                     Go back to the home page to change destination
                   </p>
-                </div>
-
-                {/* Vibe preferences */}
-                <div>
-                  <label className="block text-sm font-medium text-charcoal mb-3">
-                    Vibe Preferences
-                  </label>
-                  <div className="space-y-2">
-                    {vibeOptions.map(({ key, label }) => (
-                      <label
-                        key={key}
-                        className="flex items-center px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={vibes[key]}
-                          onChange={() => toggleVibe(key)}
-                          className="w-4 h-4 text-espresso border-gray-300 rounded focus:ring-espresso focus:ring-2"
-                        />
-                        <span className="ml-3 text-sm text-charcoal">{label}</span>
-                      </label>
-                    ))}
-                  </div>
                 </div>
 
                 {/* Free text */}

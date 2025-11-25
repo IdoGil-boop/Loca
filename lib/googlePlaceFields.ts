@@ -31,11 +31,10 @@ export type AdvancedPlaceFieldValues = Partial<Record<AdvancedPlaceField, any>>;
 export const ADVANCED_PLACE_FIELD_MASK = ADVANCED_PLACE_FIELDS.join(',');
 
 /**
- * Determine which Google API fields are relevant based on user query, vibes, and free text
+ * Determine which Google API fields are relevant based on user query and free text
  * This helps control costs by only fetching fields that are actually needed
  */
 export function getRelevantFields(
-  vibes: { [key: string]: boolean },
   keywords: string[] = [],
   freeText: string = ''
 ): AdvancedPlaceField[] {
@@ -45,31 +44,6 @@ export function getRelevantFields(
   // Always fetch essential fields
   relevantFields.add('servesCoffee');
   relevantFields.add('outdoorSeating'); // Common preference
-
-  // Vibe-based field selection
-  if (vibes.brunch) {
-    relevantFields.add('servesBrunch');
-    relevantFields.add('servesBreakfast');
-  }
-
-  if (vibes.servesVegetarian) {
-    relevantFields.add('servesVegetarianFood');
-  }
-
-  if (vibes.allowsDogs) {
-    relevantFields.add('allowsDogs');
-  }
-
-  if (vibes.laptopFriendly) {
-    // Laptop-friendly might need restroom, good for groups
-    relevantFields.add('restroom');
-  }
-
-  if (vibes.nightOwl) {
-    relevantFields.add('servesDinner');
-    relevantFields.add('servesBeer');
-    relevantFields.add('servesWine');
-  }
 
   // Query text analysis
   if (queryText.includes('dine') || queryText.includes('eat in') || queryText.includes('sit down')) {

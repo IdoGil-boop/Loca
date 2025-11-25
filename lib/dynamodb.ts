@@ -178,7 +178,6 @@ export interface SearchHistoryItem {
     name: string;
   }>;
   destination: string;
-  vibes: string[];
   freeText?: string;
   results: Array<{
     placeId: string;
@@ -226,7 +225,6 @@ export interface PlaceInteraction {
   viewCount: number;
   searchContext: {
     destination: string;
-    vibes: string[];
     freeText?: string;
     originPlaceIds: string[];
   };
@@ -325,7 +323,6 @@ export async function initializeSearchHistory(
   searchId: string,
   originPlaces: Array<{ placeId: string; name: string }>,
   destination: string,
-  vibes: string[],
   freeText?: string
 ): Promise<void> {
   const db = await getDynamoDB();
@@ -339,7 +336,6 @@ export async function initializeSearchHistory(
         searchId,
         originPlaces,
         destination,
-        vibes,
         freeText,
         results: [],
         status: 'pending',

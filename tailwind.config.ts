@@ -21,7 +21,8 @@ const config: Config = {
         '2xl': '1rem',
       },
       fontFamily: {
-        serif: ['Georgia', 'serif'],
+        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        serif: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'serif'],
         mono: ['ui-monospace', 'monospace'],
       },
     },

@@ -114,7 +114,6 @@ export const analytics = {
   searchSubmit: (params: {
     source_city: string;
     dest_city: string;
-    toggles: any;
     multi_place?: boolean; // Whether multiple source places were used (legacy: was multi_cafe)
     has_free_text?: boolean;
   }) => track({ name: 'search_submit', params }),
@@ -139,8 +138,6 @@ export const analytics = {
 
   emailSubscribeSubmit: () => track({ name: 'email_subscribe_submit' }),
 
-  ctaUpgradeClick: () => track({ name: 'cta_upgrade_click' }),
-
   // New events for enhanced features
   saveAll: (params: { count: number }) =>
     track({ name: 'save_all', params }),
@@ -148,7 +145,6 @@ export const analytics = {
   refineSearchOpen: () => track({ name: 'refine_search_open' }),
 
   refineSearchApply: (params: {
-    vibes_changed: boolean;
     free_text_added: boolean;
   }) => track({ name: 'refine_search_apply', params }),
 

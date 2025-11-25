@@ -154,7 +154,18 @@ export const storage = {
   getResultsState: (): { searchParams: string; results: any[]; mapCenter?: { lat: number; lng: number } } | null => {
     if (typeof window === 'undefined') return null;
     const data = sessionStorage.getItem(STORAGE_KEYS.RESULTS_STATE);
-    return data ? JSON.parse(data) : null;
+    const parsed = data ? JSON.parse(data) : null;
+    if (parsed) {
+      console.log('[Storage] Retrieved cached results:', {
+        resultCount: parsed.results?.length,
+        firstResult: parsed.results?.[0]?.place?.displayName,
+        hasReasoning: parsed.results?.[0]?.reasoning,
+        hasImageAnalysis: parsed.results?.[0]?.imageAnalysis,
+        reasoningValue: parsed.results?.[0]?.reasoning?.substring(0, 50),
+        imageAnalysisValue: parsed.results?.[0]?.imageAnalysis?.substring(0, 50),
+      });
+    }
+    return parsed;
   },
 
   setResultsState: (searchParams: string | null, results?: any[], mapCenter?: { lat: number; lng: number }) => {

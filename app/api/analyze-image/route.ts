@@ -47,7 +47,13 @@ export async function POST(request: NextRequest) {
       max_tokens: 50,
     });
 
-    const analysis = response.choices[0]?.message?.content || '';
+    const analysis = response.choices[0]?.message?.content?.trim() || '';
+
+    console.log('[Analyze Image] Result:', {
+      imageUrl: imageUrl.substring(0, 100) + '...',
+      analysisLength: analysis.length,
+      analysis: analysis.substring(0, 100),
+    });
 
     // Cache the result
     cache.set(imageUrl, { analysis, timestamp: Date.now() });
@@ -64,7 +70,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ analysis });
   } catch (error) {
-    console.error('Error analyzing image:', error);
+    console.error('[Analyze Image] Error analyzing image:', error);
+    // Include error details in response for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Analyze Image] Error details:', {
+      message: errorMessage,
+      type: error instanceof Error ? error.constructor.name : typeof error,
+    });
     return NextResponse.json(
       { analysis: '' },
       { status: 200 } // Return empty analysis instead of error

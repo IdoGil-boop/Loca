@@ -6,6 +6,8 @@ import { storage } from '@/lib/storage';
 import { analytics } from '@/lib/analytics';
 import { loadGoogleMaps } from '@/lib/maps-loader';
 import DetailsDrawer from '@/components/results/DetailsDrawer';
+import SavedPlacesMap from '@/components/saved/SavedPlacesMap';
+import { generateGoogleMapsDirectionsUrl } from '@/lib/google-maps-url';
 
 interface SavedPlacesDropdownProps {
   user: UserProfile | null;
@@ -17,6 +19,7 @@ export default function SavedPlacesDropdown({ user }: SavedPlacesDropdownProps) 
   const [isLoading, setIsLoading] = useState(true);
   const [selectedResult, setSelectedResult] = useState<PlaceMatch | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -95,8 +98,17 @@ export default function SavedPlacesDropdown({ user }: SavedPlacesDropdownProps) 
       loadSavedPlaces();
     };
 
+    // Listen for place saves
+    const handlePlaceSaved = () => {
+      loadSavedPlaces();
+    };
+
     window.addEventListener('loca_auth_change', handleAuthChange);
-    return () => window.removeEventListener('loca_auth_change', handleAuthChange);
+    window.addEventListener('loca_place_saved', handlePlaceSaved);
+    return () => {
+      window.removeEventListener('loca_auth_change', handleAuthChange);
+      window.removeEventListener('loca_place_saved', handlePlaceSaved);
+    };
   }, [user]);
 
   // Close dropdown when clicking outside
@@ -243,6 +255,18 @@ export default function SavedPlacesDropdown({ user }: SavedPlacesDropdownProps) 
     setSelectedResult(null);
   };
 
+  const handleOpenInGoogleMaps = async () => {
+    try {
+      setIsOpen(false);
+      const url = await generateGoogleMapsDirectionsUrl(savedPlaces);
+      window.open(url, '_blank');
+      analytics.track({ name: 'saved_places_share_google_maps_dropdown', params: { count: savedPlaces.length } });
+    } catch (error) {
+      console.error('Error generating Google Maps URL:', error);
+      alert('Failed to generate Google Maps link. Please try again.');
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -277,10 +301,59 @@ export default function SavedPlacesDropdown({ user }: SavedPlacesDropdownProps) 
         {isOpen && (
           <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-[80vh] overflow-hidden flex flex-col">
             <div className="px-4 py-3 border-b border-gray-200 flex-shrink-0">
-              <h3 className="font-semibold text-sm text-gray-900">Saved Places</h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {savedPlaces.length} {savedPlaces.length === 1 ? 'place' : 'places'}
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-sm text-gray-900">Saved Places</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {savedPlaces.length} {savedPlaces.length === 1 ? 'place' : 'places'}
+                  </p>
+                </div>
+                {savedPlaces.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setIsOpen(false);
+                        setShowMap(true);
+                      }}
+                      className="text-xs text-gray-600 hover:text-espresso font-medium flex items-center gap-1"
+                      title="View on map"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={handleOpenInGoogleMaps}
+                      className="text-xs text-espresso hover:text-espresso/80 font-medium flex items-center gap-1"
+                      title="Open in Google Maps"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="overflow-y-auto flex-1">
@@ -370,6 +443,11 @@ export default function SavedPlacesDropdown({ user }: SavedPlacesDropdownProps) 
 
       {/* Details Drawer */}
       <DetailsDrawer result={selectedResult} onClose={handleCloseDrawer} />
+
+      {/* Map View */}
+      {showMap && (
+        <SavedPlacesMap places={savedPlaces} onClose={() => setShowMap(false)} />
+      )}
     </>
   );
 }

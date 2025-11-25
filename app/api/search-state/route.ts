@@ -47,7 +47,6 @@ export async function POST(request: NextRequest) {
       searchId,
       originPlaces,
       destination,
-      vibes,
       freeText,
       results,
       allResults,
@@ -57,7 +56,7 @@ export async function POST(request: NextRequest) {
       nextPageToken,
     } = body;
 
-    if (!searchId || !originPlaces || !destination || !vibes) {
+    if (!searchId || !originPlaces || !destination) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -78,7 +77,6 @@ export async function POST(request: NextRequest) {
       searchId,
       originPlaces,
       destination,
-      vibes,
       freeText,
       results,
       allResults,

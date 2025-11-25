@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Loca Cache</title>
+</head>
+<body>
+    <h1>Clear Loca Cache</h1>
+    <button onclick="clearCache()">Clear All Cache</button>
+    <pre id="output"></pre>
+
+    <script>
+        function clearCache() {
+            const output = document.getElementById('output');
+            output.textContent = 'Clearing cache...\n';
+
+            // Clear all localStorage
+            const keys = Object.keys(localStorage);
+            output.textContent += `Found ${keys.length} keys in localStorage\n`;
+
+            keys.forEach(key => {
+                output.textContent += `Removing: ${key}\n`;
+                localStorage.removeItem(key);
+            });
+
+            output.textContent += '\n✅ Cache cleared! You can close this tab and try searching again.';
+        }
+
+        // Show current cache
+        window.addEventListener('load', () => {
+            const output = document.getElementById('output');
+            output.textContent = 'Current localStorage keys:\n';
+            Object.keys(localStorage).forEach(key => {
+                output.textContent += `- ${key}\n`;
+            });
+        });
+    </script>
+</body>
+</html>

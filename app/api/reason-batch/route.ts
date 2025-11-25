@@ -9,7 +9,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { source, candidates, city, vibes } = body;
+    const { source, candidates, city } = body;
 
     // Generate cache key based on all cafe names
     const cacheKey = `${source.name}:${candidates.map((c: any) => c.name).join(',')}`;
@@ -128,29 +128,12 @@ Return ONLY a JSON array of ${candidates.length} description strings, nothing el
       return parts.join('\n');
     }).join('\n\n---\n\n');
 
-    // Build user preferences text
-    const vibePreferences = vibes ? Object.entries(vibes)
-      .filter(([_, value]) => value)
-      .map(([key]) => {
-        const vibeMap: Record<string, string> = {
-          roastery: 'Roastery (on-site roasting)',
-          lightRoast: 'Light roast / third-wave coffee',
-          laptopFriendly: 'Laptop-friendly workspace',
-          nightOwl: 'Open late night',
-          cozy: 'Cozy atmosphere',
-          minimalist: 'Minimalist aesthetic',
-        };
-        return vibeMap[key] || key;
-      })
-      .join(', ') : '';
-
     const userPrompt = `Source place: ${source.name}
 Rating: ${source.rating || 'N/A'}/5
 Price: ${source.price_level ? '$'.repeat(source.price_level) : 'N/A'}
 Location: ${city || 'Unknown'}
-${vibePreferences ? `User preferences: ${vibePreferences}` : ''}
 
-IMPORTANT: When describing matches, consider the user's preferences (${vibePreferences || 'general quality match'}). If they want "Open late night", emphasize extended hours. If they want "Laptop-friendly", mention workspace amenities. Match the vibe preferences to the place characteristics.
+IMPORTANT: When describing matches, focus on general quality match and type similarity based on Google Places types.
 
 Here are ${candidates.length} candidate places to match. Create a UNIQUE, DIVERSE description for EACH ONE:
 
@@ -174,6 +157,11 @@ Return a JSON array of ${candidates.length} strings, where each string is a comp
     const responseContent = completion.choices[0]?.message?.content || '{}';
     let reasonings: string[] = [];
 
+    logger.debug('[Reason Batch] Raw OpenAI response:', {
+      contentLength: responseContent.length,
+      contentPreview: responseContent.substring(0, 200),
+    });
+
     try {
       const parsed = JSON.parse(responseContent);
       // Handle different possible JSON structures
@@ -188,14 +176,30 @@ Return a JSON array of ${candidates.length} strings, where each string is a comp
         const firstArray = Object.values(parsed).find(v => Array.isArray(v));
         reasonings = firstArray as string[] || [];
       }
+
+      logger.debug('[Reason Batch] Parsed reasonings:', {
+        count: reasonings.length,
+        expected: candidates.length,
+        firstReasoning: reasonings[0]?.substring(0, 100),
+        hasEmptyReasonings: reasonings.some(r => !r || !r.trim()),
+      });
     } catch (err) {
       logger.error('[Reason Batch] Failed to parse OpenAI response:', err);
+      logger.error('[Reason Batch] Response content was:', responseContent);
     }
+
+    // Trim all reasonings and replace empty ones with default
+    reasonings = reasonings.map(r => r?.trim() || 'Similar vibe and quality.');
 
     // Fallback: If we didn't get enough reasonings, fill with defaults
     while (reasonings.length < candidates.length) {
       reasonings.push('Similar vibe and quality.');
     }
+
+    logger.debug('[Reason Batch] Final reasonings after cleanup:', {
+      count: reasonings.length,
+      allNonEmpty: reasonings.every(r => r && r.trim()),
+    });
 
     // Cache the result
     cache.set(cacheKey, { reasonings, timestamp: Date.now() });

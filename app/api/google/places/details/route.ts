@@ -14,7 +14,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const placeIds: unknown = body?.placeIds;
-    const vibes: { [key: string]: boolean } = body?.vibes || {};
     const keywords: string[] = body?.keywords || [];
     const freeText: string = body?.freeText || '';
 
@@ -26,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     // Determine which fields are relevant based on query
-    const relevantFields = getRelevantFields(vibes, keywords, freeText);
+    const relevantFields = getRelevantFields(keywords, freeText);
     // Always include photos in the field mask
     const fieldMask = `photos,${relevantFields.length > 0 ? relevantFields.join(',') : ADVANCED_PLACE_FIELD_MASK}`;
 

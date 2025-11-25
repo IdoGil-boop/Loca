@@ -1,4 +1,4 @@
-import { SearchState, CafeMatch, VibeToggles } from '@/types';
+import { SearchState, CafeMatch } from '@/types';
 import { getAuthToken } from './storage';
 
 /**
@@ -9,7 +9,6 @@ export async function initializeSearch(
   searchId: string,
   originPlaces: Array<{ placeId: string; name: string }>,
   destination: string,
-  vibes: string[],
   freeText?: string
 ): Promise<void> {
   try {
@@ -28,7 +27,6 @@ export async function initializeSearch(
         searchId,
         originPlaces,
         destination,
-        vibes,
         freeText,
       }),
     });
@@ -130,17 +128,11 @@ export async function markSearchSuccessful(
 export function generateSearchId(
   originPlaceIds: string[],
   destination: string,
-  vibes: VibeToggles,
   freeText?: string
 ): string {
-  const vibesArray = Object.entries(vibes)
-    .filter(([_, enabled]) => enabled)
-    .map(([vibe]) => vibe)
-    .sort();
-
   const sortedOrigins = [...originPlaceIds].sort();
 
-  return `${sortedOrigins.join('-')}_${destination}_${vibesArray.join('-')}_${freeText || ''}`;
+  return `${sortedOrigins.join('-')}_${destination}_${freeText || ''}`;
 }
 
 /**
@@ -157,17 +149,6 @@ export function areSearchStatesEqual(
 
   // Compare destination
   if (state1.destination !== state2.destination) return false;
-
-  // Compare vibes
-  const vibes1Sorted = Object.entries(state1.vibes || {})
-    .filter(([_, enabled]) => enabled)
-    .map(([vibe]) => vibe)
-    .sort();
-  const vibes2Sorted = Object.entries(state2.vibes || {})
-    .filter(([_, enabled]) => enabled)
-    .map(([vibe]) => vibe)
-    .sort();
-  if (JSON.stringify(vibes1Sorted) !== JSON.stringify(vibes2Sorted)) return false;
 
   // Compare free text
   if ((state1.freeText || '') !== (state2.freeText || '')) return false;
@@ -285,7 +266,6 @@ export async function saveCompleteSearchState(
   searchId: string,
   originPlaces: Array<{ placeId: string; name: string }>,
   destination: string,
-  vibes: string[],
   freeText: string | undefined,
   displayedResults: CafeMatch[],
   allResults: CafeMatch[],
@@ -308,7 +288,6 @@ export async function saveCompleteSearchState(
         searchId,
         originPlaces,
         destination,
-        vibes,
         freeText,
         results: displayedResults.map(r => {
           // Extract photoUrl from photos if available

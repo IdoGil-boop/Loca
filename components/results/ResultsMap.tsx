@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { CafeMatch } from '@/types';
 import { loadGoogleMaps } from '@/lib/maps-loader';
 import { analytics } from '@/lib/analytics';
@@ -24,9 +24,21 @@ export default function ResultsMap({
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
 
+  // Create stable identifiers for results and center
+  const resultsKey = useMemo(() =>
+    results.map(r => r.place.id).join(','),
+    [results]
+  );
+
+  const centerKey = useMemo(() =>
+    center ? `${center.lat},${center.lng}` : '',
+    [center]
+  );
+
+  // Initialize map once on mount
   useEffect(() => {
     const initMap = async () => {
-      if (!mapRef.current) return;
+      if (!mapRef.current || mapInstanceRef.current) return;
 
       const google = await loadGoogleMaps();
 
@@ -48,8 +60,35 @@ export default function ResultsMap({
       });
 
       mapInstanceRef.current = map;
+    };
 
-      // Create markers
+    initMap();
+
+    return () => {
+      // Cleanup map instance on unmount
+      mapInstanceRef.current = null;
+    };
+  }, []); // Only run once on mount
+
+  // Update markers when results actually change (using stable resultsKey)
+  useEffect(() => {
+    const updateMarkers = async () => {
+      if (!mapInstanceRef.current) return;
+
+      const google = await loadGoogleMaps();
+      const map = mapInstanceRef.current;
+
+      console.log('[ResultsMap] Updating markers and bounds', {
+        resultsKey,
+        centerKey,
+        resultsCount: results.length,
+      });
+
+      // Clear existing markers
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
+
+      // Create new markers
       results.forEach((result, index) => {
         if (!result.place.location) return;
 
@@ -89,17 +128,23 @@ export default function ResultsMap({
           }
         });
         map.fitBounds(bounds);
+      } else if (center) {
+        // If no results, center on the provided center
+        map.setCenter(center);
       }
     };
 
-    initMap();
+    // Only run if we have results
+    if (resultsKey) {
+      updateMarkers();
+    }
 
     return () => {
       // Cleanup markers
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current = [];
     };
-  }, [results, center]);
+  }, [resultsKey, centerKey]); // Only depend on stable keys, not the objects themselves
 
   // Update marker styles based on selection/hover
   useEffect(() => {

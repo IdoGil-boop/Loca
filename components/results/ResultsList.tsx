@@ -107,7 +107,7 @@ export default function ResultsList({
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
-                    <h3 className="font-semibold text-base sm:text-lg truncate">
+                    <h3 className="font-sans font-semibold text-base sm:text-lg truncate">
                       {index + 1}. {result.place.displayName}
                     </h3>
                     {savedPlaceIds.has(result.place.id) && (
@@ -129,39 +129,41 @@ export default function ResultsList({
                 </div>
 
                 {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {result.place.priceLevel && (
-                    <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
-                      {getPriceLevel(result.place.priceLevel)}
-                    </span>
-                  )}
-                  {result.place.regularOpeningHours?.isOpen?.() !== undefined && (
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        result.place.regularOpeningHours.isOpen()
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {result.place.regularOpeningHours.isOpen() ? 'Open now' : 'Closed'}
-                    </span>
-                  )}
-                  {result.distanceToCenter && (
-                    <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
-                      {result.distanceToCenter.toFixed(1)} km from center
-                    </span>
-                  )}
-                </div>
+                {(result.place.priceLevel || result.place.regularOpeningHours?.isOpen?.() !== undefined || result.distanceToCenter) && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {getPriceLevel(result.place.priceLevel) && (
+                      <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
+                        {getPriceLevel(result.place.priceLevel)}
+                      </span>
+                    )}
+                    {result.place.regularOpeningHours?.isOpen?.() !== undefined && (
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          result.place.regularOpeningHours.isOpen()
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {result.place.regularOpeningHours.isOpen() ? 'Open now' : 'Closed'}
+                      </span>
+                    )}
+                    {result.distanceToCenter && (
+                      <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
+                        {result.distanceToCenter.toFixed(1)} km from center
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* Reasoning */}
-                {result.reasoning && (
+                {result.reasoning && typeof result.reasoning === 'string' && result.reasoning.trim().length > 0 && (
                   <p className="text-sm text-gray-600 italic line-clamp-3 mb-2">
                     {result.reasoning}
                   </p>
                 )}
 
                 {/* Additional info badges */}
-                {result.imageAnalysis && (
+                {result.imageAnalysis && typeof result.imageAnalysis === 'string' && result.imageAnalysis.trim().length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-2">
                     <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
                       {result.imageAnalysis}

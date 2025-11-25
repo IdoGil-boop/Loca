@@ -1,4 +1,4 @@
-import { PlaceBasicInfo, VibeToggles, EstablishmentType } from '@/types';
+import { PlaceBasicInfo, EstablishmentType } from '@/types';
 
 /**
  * Calculate type overlap score between a candidate place and multiple origin places.
@@ -88,7 +88,6 @@ export const calculateTypeOverlapScore = (
 
 export const buildSearchKeywords = (
   sourcePlaceInfo: PlaceBasicInfo,
-  _vibes: VibeToggles,
   establishmentType: EstablishmentType = 'cafe'
 ): string[] => {
   // Base keywords vary by establishment type
@@ -105,7 +104,6 @@ export const buildSearchKeywords = (
 export const scoreCafe = (
   candidate: PlaceBasicInfo,
   source: PlaceBasicInfo,
-  vibes: VibeToggles,
   keywords: string[],
   isRefinement: boolean = false,
   originPlaces: PlaceBasicInfo[] = [],
@@ -196,85 +194,58 @@ export const scoreCafe = (
     matchedKeywords.push('All-day dining');
   }
 
-  // Establishment-type-specific scoring
-  switch (establishmentType) {
-    case 'cafe':
-      // Cafe-specific vibes
-      if ('laptopFriendly' in vibes && vibes.laptopFriendly) {
-        // Cafes with wifi and workspace-friendly amenities
-        score += 1.5;
-        matchedKeywords.push('Laptop friendly');
-      }
-      if ('roastery' in vibes && vibes.roastery) {
-        // Bonus for specialty coffee/roasting
-        score += 1.5;
-        matchedKeywords.push('Roastery');
-      }
-      break;
-
-    case 'restaurant':
-      // Restaurant-specific vibes
-      if ('fineDining' in vibes && vibes.fineDining && candidate.priceLevel && candidate.priceLevel >= 3) {
-        score += 2;
-        matchedKeywords.push('Fine dining');
-      }
-      if ('outdoorDining' in vibes && vibes.outdoorDining && candidate.outdoorSeating) {
-        score += 1.5;
-        matchedKeywords.push('Outdoor dining');
-      }
-      if ('romanticAmbiance' in vibes && vibes.romanticAmbiance) {
-        score += 1.5;
-        matchedKeywords.push('Romantic');
-      }
-      break;
-
-    case 'museum':
-      // Museum-specific vibes
-      if ('interactive' in vibes && vibes.interactive) {
-        score += 1.5;
-        matchedKeywords.push('Interactive');
-      }
-      if ('modernArt' in vibes && vibes.modernArt) {
-        score += 1.5;
-        matchedKeywords.push('Modern art');
-      }
-      if ('historical' in vibes && vibes.historical) {
-        score += 1.5;
-        matchedKeywords.push('Historical');
-      }
-      break;
-
-    case 'bar':
-      // Bar-specific vibes
-      if ('liveMusic' in vibes && vibes.liveMusic && candidate.liveMusic) {
-        score += 2;
-        matchedKeywords.push('Live music');
-      }
-      if ('cocktailBar' in vibes && vibes.cocktailBar) {
-        score += 1.5;
-        matchedKeywords.push('Cocktail bar');
-      }
-      if ('craftBeer' in vibes && vibes.craftBeer) {
-        score += 1.5;
-        matchedKeywords.push('Craft beer');
-      }
-      break;
-  }
-
-  // Common vibe-based scoring - works for all establishment types
-  if (vibes.allowsDogs && candidate.allowsDogs) {
-    score += 1.5;
+  // Type-based scoring using Google Places types directly
+  // Score based on type overlap with origin places (already handled above)
+  // Additional scoring based on candidate's actual amenities/features
+  if (candidate.allowsDogs) {
+    score += 0.5;
     matchedKeywords.push('Allows dogs');
   }
 
-  if ('servesVegetarian' in vibes && vibes.servesVegetarian && candidate.servesVegetarianFood) {
-    score += 1.5;
+  if (candidate.servesVegetarianFood) {
+    score += 0.5;
     matchedKeywords.push('Serves vegetarian');
   }
 
-  if ('brunch' in vibes && vibes.brunch && candidate.servesBrunch) {
-    score += 1.5;
+  if (candidate.servesBrunch) {
+    score += 0.5;
     matchedKeywords.push('Brunch');
+  }
+
+  // Establishment-type-specific scoring based on types
+  if (candidate.types) {
+    const candidateTypes = new Set(candidate.types);
+    
+    switch (establishmentType) {
+      case 'cafe':
+        // Boost for specialty coffee types
+        if (candidateTypes.has('cafe') || candidateTypes.has('coffee_shop')) {
+          score += 0.5;
+        }
+        break;
+
+      case 'restaurant':
+        // Boost for fine dining indicators
+        if (candidate.priceLevel && candidate.priceLevel >= 3) {
+          score += 1;
+          matchedKeywords.push('Fine dining');
+        }
+        break;
+
+      case 'museum':
+        // Boost for art-related types
+        if (candidateTypes.has('art_gallery') || candidateTypes.has('museum')) {
+          score += 0.5;
+        }
+        break;
+
+      case 'bar':
+        // Boost for bar-related types
+        if (candidateTypes.has('bar') || candidateTypes.has('night_club')) {
+          score += 0.5;
+        }
+        break;
+    }
   }
 
   // If this is a refinement, prioritize keywords from free text and vibes

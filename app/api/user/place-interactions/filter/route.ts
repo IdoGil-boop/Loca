@@ -24,20 +24,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const destination = searchParams.get('destination');
-    const vibesParam = searchParams.get('vibes');
     const freeText = searchParams.get('freeText');
     const originPlaceIdsParam = searchParams.get('originPlaceIds');
 
-    if (!destination || !vibesParam || !originPlaceIdsParam) {
+    if (!destination || !originPlaceIdsParam) {
       return NextResponse.json(
-        { error: 'Missing required query params: destination, vibes, originPlaceIds' },
+        { error: 'Missing required query params: destination, originPlaceIds' },
         { status: 400 }
       );
     }
 
     const searchContext: PlaceInteraction['searchContext'] = {
       destination,
-      vibes: JSON.parse(vibesParam),
       freeText: freeText || undefined,
       originPlaceIds: JSON.parse(originPlaceIdsParam),
     };

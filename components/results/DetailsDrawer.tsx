@@ -55,7 +55,9 @@ export default function DetailsDrawer({ result, onClose }: DetailsDrawerProps) {
     }
   }, [result]);
 
-  if (!result) return null;
+  if (!result) {
+    return null;
+  }
 
   const { place, matchedKeywords, reasoning } = result;
 
@@ -207,11 +209,14 @@ export default function DetailsDrawer({ result, onClose }: DetailsDrawerProps) {
 
     setIsSaved(true);
     analytics.resultSaveGoogle(place.id);
+
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('loca_place_saved'));
   };
 
   const handleUnsave = async () => {
     storage.removeSavedCafe(place.id);
-    
+
     // Also remove from API if logged in
     const userProfile = storage.getUserProfile();
     if (userProfile?.token) {
@@ -234,6 +239,9 @@ export default function DetailsDrawer({ result, onClose }: DetailsDrawerProps) {
     }
 
     setIsSaved(false);
+
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('loca_place_saved'));
   };
 
   const handleOpenInMaps = () => {
@@ -266,22 +274,24 @@ export default function DetailsDrawer({ result, onClose }: DetailsDrawerProps) {
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
-        onClick={onClose}
-      >
+    <AnimatePresence mode="wait">
+      {result && (
         <motion.div
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className="bg-white rounded-t-2xl md:rounded-2xl w-full md:max-w-2xl max-h-[90vh] overflow-y-auto relative"
-          onClick={(e) => e.stopPropagation()}
+          key="drawer"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
+          onClick={onClose}
         >
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="bg-white rounded-t-2xl md:rounded-2xl w-full md:max-w-2xl max-h-[90vh] overflow-y-auto relative"
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* Sticky close button - always visible */}
           <button
             onClick={onClose}
@@ -488,8 +498,9 @@ export default function DetailsDrawer({ result, onClose }: DetailsDrawerProps) {
               Share this place
             </button>
           </div>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </AnimatePresence>
   );
 }

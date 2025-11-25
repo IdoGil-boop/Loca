@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { EstablishmentType, normalizeVibesByType, detectEstablishmentTypeFromPlaces, getEstablishmentTypeLabel } from '@/types';
+import { EstablishmentType, detectEstablishmentTypeFromPlaces, getEstablishmentTypeLabel } from '@/types';
 import { loadGoogleMaps } from '@/lib/maps-loader';
 
 export interface SearchFormData {
   sourcePlaceIds: string[];
   sourceNames: string[];
   destinationCity: string;
-  vibes: any; // Will be properly typed based on establishment type
   freeText?: string;
   establishmentType: EstablishmentType;
 }
@@ -31,17 +30,27 @@ export function HorizontalSearchForm({
   const [sourcePlaces, setSourcePlaces] = useState<google.maps.places.PlaceResult[]>([]);
   const [destPlace, setDestPlace] = useState<google.maps.places.PlaceResult | null>(null);
   const [freeText, setFreeText] = useState('');
-  const [showVibes, setShowVibes] = useState(false);
+  const submitSearch = () => {
+    if (sourcePlaces.length === 0) {
+      alert('Please select at least one source place');
+      return;
+    }
 
-  // Initialize default vibes based on establishment type
-  const [vibes, setVibes] = useState<any>(() =>
-    normalizeVibesByType(establishmentType, {})
-  );
+    const destination = destPlace;
 
-  // Update vibes when establishment type changes
-  useEffect(() => {
-    setVibes(normalizeVibesByType(establishmentType, {}));
-  }, [establishmentType]);
+    if (!destination) {
+      alert('Please select a destination');
+      return;
+    }
+
+    onSearch({
+      sourcePlaceIds: sourcePlaces.map((p) => p.place_id!),
+      sourceNames: sourcePlaces.map((p) => p.name!),
+      destinationCity: destination.formatted_address || destination.name!,
+      freeText: freeText || undefined,
+      establishmentType,
+    });
+  };
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
@@ -95,25 +104,7 @@ export function HorizontalSearchForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (sourcePlaces.length === 0) {
-      alert('Please select at least one source place');
-      return;
-    }
-
-    if (!destPlace) {
-      alert('Please select a destination');
-      return;
-    }
-
-    onSearch({
-      sourcePlaceIds: sourcePlaces.map((p) => p.place_id!),
-      sourceNames: sourcePlaces.map((p) => p.name!),
-      destinationCity: destPlace.formatted_address || destPlace.name!,
-      vibes,
-      freeText: freeText || undefined,
-      establishmentType,
-    });
+    submitSearch();
   };
 
   const removeSourcePlace = (placeId: string) => {
@@ -136,8 +127,27 @@ export function HorizontalSearchForm({
   return (
     <div className="bg-white border-b shadow-sm sticky top-0 z-40">
       <form onSubmit={handleSubmit} className="max-w-7xl mx-auto px-4 py-4">
-        {/* Main Search Row */}
-        <div className="flex flex-wrap gap-3 items-start">
+        {/* Main Search Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-[repeat(3,minmax(200px,1fr))_auto] gap-3  items-start md:items-end">
+          {/* Destination */}
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Where are you going?
+            </label>
+            <input
+              ref={destInputRef}
+              type="text"
+              placeholder="e.g., Brooklyn, NY"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-espresso focus:border-transparent text-sm"
+              disabled={isLoading}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+
           {/* Source Places */}
           <div className="flex-1 min-w-[200px]">
             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -154,9 +164,17 @@ export function HorizontalSearchForm({
               placeholder="e.g., Blue Bottle Coffee, SF"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-espresso focus:border-transparent text-sm"
               disabled={isLoading}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
             />
-            {sourcePlaces.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
+          </div>
+
+          {sourcePlaces.length > 0 && (
+            <div className="mt-2 md:mt-0 md:row-start-2 md:col-start-2 md:col-span-1">
+              <div className="flex flex-wrap gap-1">
                 {sourcePlaces.map((place) => (
                   <span
                     key={place.place_id}
@@ -174,22 +192,8 @@ export function HorizontalSearchForm({
                   </span>
                 ))}
               </div>
-            )}
-          </div>
-
-          {/* Destination */}
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Where are you going?
-            </label>
-            <input
-              ref={destInputRef}
-              type="text"
-              placeholder="e.g., Brooklyn, NY"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-espresso focus:border-transparent text-sm"
-              disabled={isLoading}
-            />
-          </div>
+            </div>
+          )}
 
           {/* Free Text (Optional) */}
           <div className="flex-1 min-w-[150px]">
@@ -207,23 +211,15 @@ export function HorizontalSearchForm({
           </div>
 
           {/* Search Button */}
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={isLoading || sourcePlaces.length === 0 || !destPlace}
-              className="px-6 py-2 bg-espresso text-white rounded-lg hover:bg-espresso-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-espresso disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
-            >
-              {isLoading ? 'Searching...' : 'Find Places'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={isLoading || sourcePlaces.length === 0 || !destPlace}
+            className="px-6 py-2 bg-espresso text-white rounded-lg hover:bg-espresso-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-espresso disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap self-start md:self-end"
+          >
+            {isLoading ? 'Searching...' : 'Find Places'}
+          </button>
         </div>
 
-        {/* Vibes Toggle (Hidden for MVP, can be expanded later) */}
-        {showVibes && (
-          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">Vibe preferences (coming soon)</p>
-          </div>
-        )}
       </form>
     </div>
   );

@@ -15,11 +15,10 @@ export async function POST(request: NextRequest) {
       searchId,
       originPlaces,
       destination,
-      vibes,
       freeText,
     } = body;
 
-    if (!searchId || !originPlaces || !destination || !vibes) {
+    if (!searchId || !originPlaces || !destination) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -40,7 +39,6 @@ export async function POST(request: NextRequest) {
       searchId,
       originPlaces,
       destination,
-      vibes,
       freeText
     );
 

@@ -12,7 +12,7 @@ interface ViewToggleProps {
 }
 
 export function ViewToggle({ value, onChange, disabled = false, className = '' }: ViewToggleProps) {
-  const baseButtonClasses = "px-4 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-espresso";
+  const baseButtonClasses = "px-4 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-espresso";
 
   const getButtonClasses = (mode: ViewMode) => {
     const isActive = value === mode;
@@ -28,7 +28,7 @@ export function ViewToggle({ value, onChange, disabled = false, className = '' }
       <button
         onClick={() => !disabled && onChange('list')}
         disabled={disabled}
-        className={`${getButtonClasses('list')} rounded-l-lg border-r-0`}
+        className={`${getButtonClasses('list')} rounded-l-lg md:border-r-0`}
         aria-label="List only view"
         aria-pressed={value === 'list'}
       >
@@ -43,7 +43,7 @@ export function ViewToggle({ value, onChange, disabled = false, className = '' }
       <button
         onClick={() => !disabled && onChange('split')}
         disabled={disabled}
-        className={`${getButtonClasses('split')} border-x`}
+        className={`${getButtonClasses('split')} hidden md:inline-flex`}
         aria-label="List and map view"
         aria-pressed={value === 'split'}
       >
@@ -58,7 +58,7 @@ export function ViewToggle({ value, onChange, disabled = false, className = '' }
       <button
         onClick={() => !disabled && onChange('map')}
         disabled={disabled}
-        className={`${getButtonClasses('map')} rounded-r-lg border-l-0`}
+        className={`${getButtonClasses('map')} rounded-r-lg md:border-l-0`}
         aria-label="Map only view"
         aria-pressed={value === 'map'}
       >

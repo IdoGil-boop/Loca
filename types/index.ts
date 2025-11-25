@@ -1,149 +1,11 @@
 // Establishment types supported by Loca
 export type EstablishmentType = 'cafe' | 'restaurant' | 'museum' | 'bar';
 
-// Base vibes that apply to all establishment types
-export interface BaseVibes {
-  cozy: boolean;
-  minimalist: boolean;
-  allowsDogs: boolean;
-  nightOwl: boolean;
-}
-
-// Cafe-specific vibes
-export interface CafeVibes extends BaseVibes {
-  roastery: boolean;
-  lightRoast: boolean;
-  laptopFriendly: boolean;
-  brunch: boolean;
-}
-
-// Restaurant-specific vibes
-export interface RestaurantVibes extends BaseVibes {
-  outdoorDining: boolean;
-  fineDining: boolean;
-  casualDining: boolean;
-  brunch: boolean;
-  servesVegetarian: boolean;
-  romanticAmbiance: boolean;
-}
-
-// Museum-specific vibes
-export interface MuseumVibes extends BaseVibes {
-  interactive: boolean;
-  modernArt: boolean;
-  historical: boolean;
-  familyFriendly: boolean;
-  photography: boolean;
-}
-
-// Bar-specific vibes
-export interface BarVibes extends BaseVibes {
-  liveMusic: boolean;
-  cocktailBar: boolean;
-  sportsBar: boolean;
-  rooftop: boolean;
-  danceFloor: boolean;
-  craftBeer: boolean;
-}
-
-// Union type for all vibes (for backward compatibility)
-export type VibeToggles = CafeVibes | RestaurantVibes | MuseumVibes | BarVibes;
-
-// Legacy cafe vibes (for backward compatibility)
-export interface LegacyCafeVibes {
-  roastery: boolean;
-  lightRoast: boolean;
-  laptopFriendly: boolean;
-  nightOwl: boolean;
-  cozy: boolean;
-  minimalist: boolean;
-  allowsDogs: boolean;
-  servesVegetarian: boolean;
-  brunch: boolean;
-}
-
-/**
- * Normalize legacy cafe vibes object to ensure all fields are present with defaults
- * Useful for backward compatibility when parsing from JSON
- */
-export function normalizeLegacyCafeVibes(vibes: Partial<LegacyCafeVibes>): LegacyCafeVibes {
-  return {
-    roastery: vibes.roastery ?? false,
-    lightRoast: vibes.lightRoast ?? false,
-    laptopFriendly: vibes.laptopFriendly ?? false,
-    nightOwl: vibes.nightOwl ?? false,
-    cozy: vibes.cozy ?? false,
-    minimalist: vibes.minimalist ?? false,
-    allowsDogs: vibes.allowsDogs ?? false,
-    servesVegetarian: vibes.servesVegetarian ?? false,
-    brunch: vibes.brunch ?? false,
-  };
-}
-
-/**
- * Normalize vibes based on establishment type
- */
-export function normalizeVibesByType(
-  establishmentType: EstablishmentType,
-  vibes: Partial<any>
-): VibeToggles {
-  const baseDefaults = {
-    cozy: vibes.cozy ?? false,
-    minimalist: vibes.minimalist ?? false,
-    allowsDogs: vibes.allowsDogs ?? false,
-    nightOwl: vibes.nightOwl ?? false,
-  };
-
-  switch (establishmentType) {
-    case 'cafe':
-      return {
-        ...baseDefaults,
-        roastery: vibes.roastery ?? false,
-        lightRoast: vibes.lightRoast ?? false,
-        laptopFriendly: vibes.laptopFriendly ?? false,
-        brunch: vibes.brunch ?? false,
-      } as CafeVibes;
-
-    case 'restaurant':
-      return {
-        ...baseDefaults,
-        outdoorDining: vibes.outdoorDining ?? false,
-        fineDining: vibes.fineDining ?? false,
-        casualDining: vibes.casualDining ?? false,
-        brunch: vibes.brunch ?? false,
-        servesVegetarian: vibes.servesVegetarian ?? false,
-        romanticAmbiance: vibes.romanticAmbiance ?? false,
-      } as RestaurantVibes;
-
-    case 'museum':
-      return {
-        ...baseDefaults,
-        interactive: vibes.interactive ?? false,
-        modernArt: vibes.modernArt ?? false,
-        historical: vibes.historical ?? false,
-        familyFriendly: vibes.familyFriendly ?? false,
-        photography: vibes.photography ?? false,
-      } as MuseumVibes;
-
-    case 'bar':
-      return {
-        ...baseDefaults,
-        liveMusic: vibes.liveMusic ?? false,
-        cocktailBar: vibes.cocktailBar ?? false,
-        sportsBar: vibes.sportsBar ?? false,
-        rooftop: vibes.rooftop ?? false,
-        danceFloor: vibes.danceFloor ?? false,
-        craftBeer: vibes.craftBeer ?? false,
-      } as BarVibes;
-  }
-}
-
 export interface SearchParams {
   sourcePlaceId: string;
   sourceName: string;
   destinationCity: string;
   destinationCountry?: string;
-  vibes: VibeToggles;
   establishmentType: EstablishmentType; // Type of establishment to search for
 }
 
@@ -250,7 +112,6 @@ export interface SearchState {
     name: string;
   }>;
   destination: string;
-  vibes: VibeToggles;
   freeText?: string;
   establishmentType: EstablishmentType; // Type of establishment being searched
   timestamp: string;

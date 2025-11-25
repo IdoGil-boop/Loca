@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
       searchId: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
       originPlaces: body.originPlaces,
       destination: body.destination,
-      vibes: body.vibes,
       freeText: body.freeText,
       results: body.results,
       timestamp: new Date().toISOString(),
