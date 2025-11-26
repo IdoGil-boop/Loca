@@ -93,6 +93,27 @@ export default function GoogleSignIn({ onSignIn }: GoogleSignInProps) {
       });
     }
 
+    // Save user profile to DynamoDB (async, don't wait)
+    fetch('/api/user/profile', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${response.credential}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        // Include all available user info from Google
+        createdAt: new Date().toISOString(),
+      }),
+    })
+      .then(res => {
+        if (res.ok) {
+          console.log('[GoogleSignIn] User profile saved to DynamoDB');
+        } else {
+          console.warn('[GoogleSignIn] Failed to save user profile to DynamoDB:', res.status);
+        }
+      })
+      .catch(err => console.warn('[GoogleSignIn] Error saving user profile to DynamoDB:', err));
+
     // Migrate anonymous IP-based data to user account (async, don't wait)
     fetch('/api/user/migrate-anonymous-data', {
       method: 'POST',

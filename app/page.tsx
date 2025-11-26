@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { EstablishmentType, CafeMatch } from '@/types';
 import { HorizontalSearchForm, SearchFormData } from '@/components/search/HorizontalSearchForm';
 import { ViewToggle, ViewMode } from '@/components/search/ViewToggle';
 import { useSearch } from '@/hooks/useSearch';
 import DetailsDrawer from '@/components/results/DetailsDrawer';
 import RefineSearchModal from '@/components/results/RefineSearchModal';
+import { storage } from '@/lib/storage';
+import Toast from '@/components/shared/Toast';
 import dynamic from 'next/dynamic';
 
 // Dynamically import map and results components (they use Google Maps)
@@ -28,6 +30,9 @@ export default function HomePage() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isRefineModalOpen, setIsRefineModalOpen] = useState(false);
   const searchFormRef = useRef<HTMLDivElement>(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info' | 'warning'>('info');
+  const [showToast, setShowToast] = useState(false);
 
   // Track current search params for refinement
   const [currentSearchParams, setCurrentSearchParams] = useState<{
@@ -39,7 +44,60 @@ export default function HomePage() {
 
   const { results, isLoading, error, mapCenter, executeSearch } = useSearch();
 
+  // Check token expiration on page load
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      const profile = storage.getUserProfile();
+      if (!profile?.token) return;
+
+      try {
+        // Decode JWT token to check expiration
+        const base64Url = profile.token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+        const decoded = JSON.parse(jsonPayload);
+        
+        // Check if token is expired (with 24 hour grace period like server-side)
+        const exp = decoded.exp;
+        if (exp) {
+          const expirationTime = exp * 1000;
+          const now = Date.now();
+          const twentyFourHours = 24 * 60 * 60 * 1000;
+
+          // If expired more than 24 hours, log out
+          if (now >= expirationTime + twentyFourHours) {
+            console.log('[HomePage] Token expired, logging out user');
+            storage.setUserProfile(null);
+            window.dispatchEvent(new Event('loca_auth_change'));
+          }
+        }
+      } catch (error) {
+        console.error('[HomePage] Error checking token expiration:', error);
+        // If we can't decode the token, it's invalid - log out
+        storage.setUserProfile(null);
+        window.dispatchEvent(new Event('loca_auth_change'));
+      }
+    };
+
+    checkTokenExpiration();
+  }, []);
+
   const handleSearch = async (formData: SearchFormData) => {
+    // Check if user is logged in
+    const userProfile = storage.getUserProfile();
+    if (!userProfile || !userProfile.token) {
+      // Show cute login message
+      setToastMessage('Hey there! 👋 To find your perfect matches, please sign in with Google first. It\'s quick and helps us personalize your experience! ✨');
+      setToastType('warning');
+      setShowToast(true);
+      return;
+    }
+
     setHasSearched(true);
     setEstablishmentType(formData.establishmentType);
 
@@ -267,6 +325,15 @@ export default function HomePage() {
           onApply={handleRefineSearch}
         />
       )}
+
+      {/* Toast for login message */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+        duration={6000}
+      />
     </div>
   );
 }
